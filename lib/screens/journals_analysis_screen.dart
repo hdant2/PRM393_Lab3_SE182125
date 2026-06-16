@@ -1,3 +1,9 @@
+// =============================================================================
+// journals_analysis_screen.dart — JOURNAL RANKING (#14)
+// =============================================================================
+// JournalBarChart + ranked list — tab Journals trong Keywords hub.
+// =============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

@@ -1,3 +1,7 @@
+// =============================================================================
+// top_journals_screen.dart — DANH SÁCH TOP JOURNALS (màn classic)
+// =============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

@@ -1,3 +1,5 @@
+// Test ResearchInsights — growth %, momentum, concept growth
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:lab2/models/research_insight.dart';

@@ -1,3 +1,10 @@
+// =============================================================================
+// author_detail_screen.dart — CHI TIẾT TÁC GIẢ
+// =============================================================================
+// API scoped theo authorships.author.id (+ search topic nếu đang Explore).
+// Hiển thị: trend chart, top journals, danh sách bài paginated 20/trang.
+// =============================================================================
+
 import 'package:flutter/material.dart';
 
 import '../models/openalex_ranked_entity.dart';
@@ -16,6 +23,8 @@ import '../widgets/ranked_list_widgets.dart';
 import '../widgets/trend_chart.dart';
 import 'journal_detail_screen.dart';
 
+/// Màn chi tiết **tác giả** — filter `authorships.author.id`.
+/// [provider] truyền vào để giữ scope global/topic khi gọi API.
 class AuthorDetailScreen extends StatefulWidget {
   final OpenAlexRankedEntity author;
   final PublicationProvider provider;
@@ -31,6 +40,7 @@ class AuthorDetailScreen extends StatefulWidget {
 }
 
 class _AuthorDetailScreenState extends State<AuthorDetailScreen> {
+  /// Dữ liệu scoped theo author id (+ search topic nếu có)
   List<Publication> _papers = [];
   List<OpenAlexRankedEntity> _journals = [];
   Map<int, int> _trend = {};
@@ -48,6 +58,7 @@ class _AuthorDetailScreenState extends State<AuthorDetailScreen> {
     _loadInitial();
   }
 
+  /// Load trang 1 papers + trend + top journals (Future.wait song song).
   Future<void> _loadInitial() async {
     setState(() {
       _loading = true;
@@ -90,6 +101,7 @@ class _AuthorDetailScreenState extends State<AuthorDetailScreen> {
     }
   }
 
+  /// Load thêm 20 bài — append vào _papers.
   Future<void> _loadMore() async {
     if (!_hasMore || _loadingMore) return;
 
@@ -116,11 +128,13 @@ class _AuthorDetailScreenState extends State<AuthorDetailScreen> {
     }
   }
 
+  /// Citations trung bình của các bài đã load (ước lượng trên màn hình).
   double get _avgCitations {
     if (_papers.isEmpty) return 0;
     return _papers.fold<int>(0, (sum, p) => sum + p.citations) / _papers.length;
   }
 
+  /// UI: stats → trend chart → papers + load more → top journals.
   @override
   Widget build(BuildContext context) {
     final totalCount =

@@ -1,7 +1,9 @@
+// Banner lỗi API — hiện message + nút Retry (Overview, Explore, detail screens)
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 
+/// Hiển thị lỗi OpenAlex / mạng — màu đỏ nhạt, có nút Retry tùy chọn
 class ErrorBanner extends StatelessWidget {
   final String message;
   final VoidCallback? onRetry;

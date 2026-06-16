@@ -1,10 +1,17 @@
+// =============================================================================
+// trend_chart.dart — BIỂU ĐỒ LINE TREND (fl_chart)
+// =============================================================================
+// Input: Map<int,int> năm → số bài (hoặc citations).
+// Dùng ở: TrendScreen, GrowthScreen, Keywords tab, Author/Journal/Domain detail.
+// =============================================================================
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 import '../utils/count_format.dart';
 
-/// Line chart — trục X theo thứ tự năm, không hiển thị label trên đỉnh (tránh chồng chữ).
+/// Line chart — trục X theo thứ tự năm, tooltip khi chạm điểm
 class TrendChart extends StatelessWidget {
   final Map<int, int> yearlyData;
 
@@ -29,6 +36,7 @@ class TrendChart extends StatelessWidget {
       );
     }
 
+    // Chuyển Map → FlSpot cho fl_chart
     final spots = <FlSpot>[];
     for (var i = 0; i < years.length; i++) {
       spots.add(FlSpot(i.toDouble(), yearlyData[years[i]]!.toDouble()));
@@ -154,6 +162,7 @@ class TrendChart extends StatelessWidget {
     );
   }
 
+  /// Chọn bước trục Y đẹp (1, 2, 5, 10 × 10^n)
   double _niceInterval(double range) {
     if (range <= 0) return 1;
     final raw = range / 4;

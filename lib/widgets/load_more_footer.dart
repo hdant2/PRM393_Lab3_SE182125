@@ -1,8 +1,10 @@
+// Footer phân trang — "Load more" khi search / detail list 20 bài/trang
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 import '../utils/count_format.dart';
 
+/// Hiện loaded/total + nút Load more — gọi callback từ PublicationProvider
 class LoadMoreFooter extends StatelessWidget {
   final int loadedCount;
   final int totalCount;
@@ -21,9 +23,7 @@ class LoadMoreFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (totalCount == 0 && !isLoading) {
-      return const SizedBox.shrink();
-    }
+    if (totalCount <= 0 && !hasMore) return const SizedBox.shrink();
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -38,18 +38,17 @@ class LoadMoreFooter extends StatelessWidget {
             ),
           ),
           if (hasMore) ...[
-            const SizedBox(height: 8),
-            if (isLoading)
-              const SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            else
-              OutlinedButton(
-                onPressed: onLoadMore,
-                child: const Text('Load more'),
-              ),
+            const SizedBox(height: 10),
+            OutlinedButton(
+              onPressed: isLoading ? null : onLoadMore,
+              child: isLoading
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Load more'),
+            ),
           ],
         ],
       ),

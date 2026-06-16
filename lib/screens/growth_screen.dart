@@ -1,3 +1,9 @@
+// =============================================================================
+// growth_screen.dart — RESEARCH GROWTH (diagram trend mở rộng)
+// =============================================================================
+// Chart + CAGR + growth bars theo domain. Mở từ Overview tile.
+// =============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

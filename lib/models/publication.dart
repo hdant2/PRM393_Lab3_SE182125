@@ -1,5 +1,13 @@
 import 'publication_author.dart';
 
+// =============================================================================
+// publication.dart — MODEL MỘT BÀI BÁO (map từ JSON OpenAlex)
+// =============================================================================
+// OpenAlex trả abstract dạng "inverted index" (từ → vị trí) → _buildAbstract()
+// ghép lại thành câu. Concepts lọc score >= 0.35, lấy top 3.
+// readUrl: ưu tiên Open Access → PDF → landing page → DOI
+// =============================================================================
+
 /// Model đại diện cho một bài báo khoa học
 class Publication {
   /// ID duy nhất của bài báo
@@ -99,7 +107,7 @@ class Publication {
 
   bool get hasReadLink => readUrl != null;
 
-  /// Chuyển JSON từ OpenAlex thành Publication object
+  /// Chuyển 1 phần tử trong results[] của GET /works thành Publication
   factory Publication.fromJson(Map<String, dynamic> json) {
     final urls = _parseUrls(json);
 
@@ -199,6 +207,7 @@ class Publication {
         .toList();
   }
 
+  /// OpenAlex lưu abstract dạng { "word": [0, 5, 12], ... } — ghép theo index
   static String _buildAbstract(Map<String, dynamic>? invertedIndex) {
     if (invertedIndex == null) {
       return 'No abstract available';

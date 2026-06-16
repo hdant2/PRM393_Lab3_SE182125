@@ -9,21 +9,45 @@ import '../models/openalex_works_result.dart';
 import '../models/publication.dart';
 import '../models/research_insight.dart';
 import '../utils/research_insights.dart';
+import 'openalex_config.dart';
 import 'openalex_exception.dart';
+
+// =============================================================================
+// openalex_service.dart — TẦNG API (gọi OpenAlex)
+// =============================================================================
+// Mọi HTTP tới https://api.openalex.org/works đi qua file này.
+//
+// Endpoint chính: GET /works với các tham số:
+//   search=ras          → full-text search (giống web OpenAlex)
+//   filter=...          → lọc theo năm, author, journal, concept…
+//   group_by=...        → aggregate (top author, trend theo năm…)
+//   sort=...            → chỉ dùng khi cần xếp theo citations
+//   per-page, page      → phân trang (app dùng 20 bài/trang)
+//
+// Luồng điển hình:
+//   SearchScreen → PublicationProvider.searchPublications()
+//                → fetchSearchPage() → _fetchWorksPage()
+//                → Publication.fromJson() cho từng item trong results[]
+// =============================================================================
 
 /// Service chịu trách nhiệm giao tiếp với OpenAlex API
 class OpenAlexService {
-  static const String _apiKey =
-      String.fromEnvironment('OPENALEX_API_KEY');
+  OpenAlexService(this._config);
+
+  final OpenAlexConfig _config;
+
+  String get _apiKey => _config.apiKey;
 
   static const int _maxRetries = 4;
   static const Duration _requestTimeout = Duration(seconds: 45);
   static const Set<int> _retryStatusCodes = {429, 502, 503, 504};
 
+  /// OpenAlex cho tối đa 100 bài/request; app hiển thị 20/trang cho UX
   static const int _perPage = 100;
   static const int listPageSize = 20;
   static const int _searchListPages = 3;
 
+  /// Tên field group_by — dùng cho top authors / journals / research domains
   static const String groupByAuthor = 'authorships.author.id';
   static const String groupByJournal = 'primary_location.source.id';
   static const String groupByConcept = 'concepts.id';
@@ -43,22 +67,26 @@ class OpenAlexService {
     return [for (var year = 2016; year <= endYear; year++) year];
   }
 
+  /// Search trang 1 — wrapper cho provider
   Future<OpenAlexWorksResult> searchPublications(String topic) {
     return fetchSearchPage(topic, page: 1);
   }
 
+  /// Danh sách bài khi user search (Explore tab).
+  /// KHÔNG sort theo citations → OpenAlex xếp theo relevance (giống web).
   Future<OpenAlexWorksResult> fetchSearchPage(
     String topic, {
     required int page,
     int perPage = listPageSize,
   }) {
     return _fetchWorksResultPage(
-      _listBaseParams(search: topic),
+      _searchListParams(topic),
       page: page,
       perPage: perPage,
     );
   }
 
+  /// meta.count — tổng số bài khớp filter/search (per-page=1 cho nhẹ).
   Future<int> fetchWorksTotalCount({
     String? search,
     bool globalInfluential = false,
@@ -74,13 +102,14 @@ class OpenAlexService {
     return page.totalOnOpenAlex;
   }
 
+  /// Top bài trích dẫn cao (Citation Leaders) — luôn sort citations desc
   Future<List<Publication>> fetchTopPapers({
     String? search,
     bool globalInfluential = false,
     int limit = 10,
   }) async {
     final page = await _fetchWorksPage(
-      _listBaseParams(
+      _topPapersParams(
         search: search,
         globalInfluential: globalInfluential,
       ),
@@ -90,6 +119,7 @@ class OpenAlexService {
     return page.publications;
   }
 
+  /// Trung bình cited_by_count — lấy mẫu 100 bài đầu.
   Future<double> fetchAverageCitation({
     String? search,
     bool globalInfluential = false,
@@ -119,6 +149,7 @@ class OpenAlexService {
     String? search,
     bool globalInfluential = false,
   }) async {
+    // GET /works?group_by=publication_year → biểu đồ trend
     final data = await _fetchWorksGroupBy(
       groupBy: 'publication_year',
       search: search,
@@ -127,6 +158,7 @@ class OpenAlexService {
     return parseGroupByYear(data);
   }
 
+  /// Tổng + trung bình citations theo từng năm (loop từng năm 2016→nay).
   Future<({Map<int, int> totals, Map<int, int> averages})>
       fetchCitationMetricsByYear({
     String? search,
@@ -162,6 +194,7 @@ class OpenAlexService {
     return (totals: totals, averages: averages);
   }
 
+  /// group_by bất kỳ (author, journal, concept…) → ranked list.
   Future<List<OpenAlexRankedEntity>> fetchWorksGroupedCounts({
     required String groupBy,
     String? search,
@@ -178,6 +211,7 @@ class OpenAlexService {
     return parseGroupByNamedCounts(data, limit: limit);
   }
 
+  /// Hot topics của một năm — group_by concept + filter publication_year.
   Future<List<OpenAlexRankedEntity>> fetchConceptsForYear({
     required int year,
     String? search,
@@ -197,6 +231,7 @@ class OpenAlexService {
     );
   }
 
+  /// Bài theo năm — phân trang 20, sort citations.
   Future<OpenAlexWorksResult> fetchPublicationsForYearPage({
     required int year,
     required int page,
@@ -215,6 +250,7 @@ class OpenAlexService {
     );
   }
 
+  /// Wrapper lấy trang 1 bài theo năm.
   Future<List<Publication>> fetchPublicationsForYear({
     required int year,
     String? search,
@@ -229,6 +265,7 @@ class OpenAlexService {
     return result.publications;
   }
 
+  /// Bài của 1 author — filter authorships.author.id, paginated.
   Future<OpenAlexWorksResult> fetchWorksByAuthorIdPage({
     required String authorId,
     required int page,
@@ -245,6 +282,7 @@ class OpenAlexService {
     );
   }
 
+  /// Wrapper trang 1 bài theo author.
   Future<List<Publication>> fetchWorksByAuthorId({
     required String authorId,
     String? search,
@@ -260,6 +298,7 @@ class OpenAlexService {
     return result.publications;
   }
 
+  /// Bài của 1 journal/source — filter primary_location.source.id.
   Future<OpenAlexWorksResult> fetchWorksBySourceIdPage({
     required String sourceId,
     required int page,
@@ -276,6 +315,7 @@ class OpenAlexService {
     );
   }
 
+  /// Wrapper trang 1 bài theo journal.
   Future<List<Publication>> fetchWorksBySourceId({
     required String sourceId,
     String? search,
@@ -291,7 +331,7 @@ class OpenAlexService {
     return result.publications;
   }
 
-  /// Lấy các bài liên quan từ danh sách OpenAlex work id (`related_works`)
+  /// Bài liên quan từ field related_works — sort citations, bỏ bài hiện tại.
   Future<List<Publication>> fetchRelatedWorks({
     required List<String> relatedWorkIds,
     String? excludeWorkId,
@@ -320,6 +360,7 @@ class OpenAlexService {
         .toList();
   }
 
+  /// Rút ID ngắn từ URL OpenAlex (https://openalex.org/W123 → W123).
   static String shortOpenAlexId(String openAlexId) {
     final trimmed = openAlexId.trim();
     if (trimmed.isEmpty) return '';
@@ -329,6 +370,7 @@ class OpenAlexService {
     return trimmed;
   }
 
+  /// Trend theo năm của 1 concept — group_by publication_year + filter concepts.id.
   Future<Map<int, int>> fetchConceptYearlyTrend({
     required String conceptId,
     String? search,
@@ -348,6 +390,7 @@ class OpenAlexService {
     return parseGroupByYear(data);
   }
 
+  /// Top authors trong phạm vi 1 concept.
   Future<List<OpenAlexRankedEntity>> fetchConceptTopAuthors({
     required String conceptId,
     String? search,
@@ -367,6 +410,7 @@ class OpenAlexService {
     );
   }
 
+  /// Top journals publish nhiều bài nhất trong concept.
   Future<List<OpenAlexRankedEntity>> fetchConceptTopJournals({
     required String conceptId,
     String? search,
@@ -386,6 +430,7 @@ class OpenAlexService {
     );
   }
 
+  /// Danh sách bài thuộc concept — paginated (DomainDetailScreen).
   Future<OpenAlexWorksResult> fetchConceptWorksPage({
     required String conceptId,
     required int page,
@@ -464,6 +509,7 @@ class OpenAlexService {
     return filter;
   }
 
+  /// Trend theo năm của 1 author.
   Future<Map<int, int>> fetchAuthorYearlyTrend({
     required String authorId,
     String? search,
@@ -483,6 +529,7 @@ class OpenAlexService {
     return parseGroupByYear(data);
   }
 
+  /// Journal mà author publish nhiều nhất.
   Future<List<OpenAlexRankedEntity>> fetchAuthorTopJournals({
     required String authorId,
     String? search,
@@ -502,6 +549,7 @@ class OpenAlexService {
     );
   }
 
+  /// Trend theo năm của 1 journal/source.
   Future<Map<int, int>> fetchSourceYearlyTrend({
     required String sourceId,
     String? search,
@@ -521,6 +569,7 @@ class OpenAlexService {
     return parseGroupByYear(data);
   }
 
+  /// Top authors publish nhiều trên journal này.
   Future<List<OpenAlexRankedEntity>> fetchSourceTopAuthors({
     required String sourceId,
     String? search,
@@ -540,6 +589,7 @@ class OpenAlexService {
     );
   }
 
+  /// Tính % growth emerging topics — loop concept, gọi fetchConceptYearlyTrend.
   Future<List<TopicGrowthInsight>> fetchTopicGrowthInsights({
     required List<OpenAlexRankedEntity> concepts,
     String? search,
@@ -572,7 +622,38 @@ class OpenAlexService {
     return results.sublist(0, limit);
   }
 
+  // ---------------------------------------------------------------------------
+  // Tham số URL — quyết định sort/filter/search cho từng loại request
+  // ---------------------------------------------------------------------------
+
+  /// Search Explore: KHÔNG sort → relevance mặc định OpenAlex
+  Map<String, String> _searchListParams(String search) {
+    return {'search': search.trim()};
+  }
+
+  /// Dashboard global: bài sau 2015, có thể thêm cited_by_count:>100
   Map<String, String> _listBaseParams({
+    String? search,
+    bool globalInfluential = false,
+  }) {
+    if (search != null && search.trim().isNotEmpty) {
+      // Đếm tổng / aggregate metrics khi đang search topic
+      return _searchListParams(search);
+    }
+
+    var filter = 'publication_year:>2015';
+    if (globalInfluential) {
+      filter = 'publication_year:>2015,cited_by_count:>100';
+    }
+
+    return {
+      'sort': 'cited_by_count:desc',
+      'filter': filter,
+    };
+  }
+
+  /// Citation Leaders: luôn sort citations dù search hay global.
+  Map<String, String> _topPapersParams({
     String? search,
     bool globalInfluential = false,
   }) {
@@ -622,6 +703,7 @@ class OpenAlexService {
     return filter;
   }
 
+  /// GET /works có filter tùy ý + optional search — dùng cho author/journal/concept pages.
   Future<OpenAlexWorksResult> _fetchFilteredWorksPage({
     required String filter,
     required int page,
@@ -643,6 +725,7 @@ class OpenAlexService {
     return _fetchWorksResultPage(params, page: page, perPage: perPage);
   }
 
+  /// Wrapper _fetchWorksPage → OpenAlexWorksResult.
   Future<OpenAlexWorksResult> _fetchWorksResultPage(
     Map<String, String> baseParams, {
     required int page,
@@ -660,6 +743,7 @@ class OpenAlexService {
     );
   }
 
+  /// Gọi GET /works?group_by=... — trả raw JSON.
   Future<Map<String, dynamic>> _fetchWorksGroupBy({
     required String groupBy,
     String? search,
@@ -706,6 +790,7 @@ class OpenAlexService {
     return queryParams;
   }
 
+  /// Parse group_by publication_year → Map year → count
   static Map<int, int> parseGroupByYear(Map<String, dynamic> data) {
     final groups = data['group_by'] as List? ?? [];
     final result = <int, int>{};
@@ -724,6 +809,7 @@ class OpenAlexService {
     return result;
   }
 
+  /// Parse group_by author/journal/concept → list OpenAlexRankedEntity
   static List<OpenAlexRankedEntity> parseGroupByNamedCounts(
     Map<String, dynamic> data, {
     int limit = 10,
@@ -778,6 +864,7 @@ class OpenAlexService {
     );
   }
 
+  /// Gọi GET /works — parse JSON thành danh sách Publication + meta.count
   Future<OpenAlexWorksResult> _fetchWorksPage(
     Map<String, String> baseParams, {
     required int page,
@@ -815,6 +902,10 @@ class OpenAlexService {
       totalOnOpenAlex: total,
     );
   }
+
+  // ---------------------------------------------------------------------------
+  // HTTP layer — retry, timeout, parse JSON
+  // ---------------------------------------------------------------------------
 
   Future<Map<String, dynamic>> _getJson(Uri url) async {
     http.Response? lastResponse;
@@ -881,12 +972,14 @@ class OpenAlexService {
     );
   }
 
+  /// Chờ tăng dần giữa các lần retry (1.5s, 3s, 4.5s…).
   Future<void> _backoff(int attempt) async {
     await Future<void>.delayed(
       Duration(milliseconds: 1500 * (attempt + 1)),
     );
   }
 
+  /// Chuyển status HTTP → message tiếng Việt cho UI.
   OpenAlexException _mapHttpError(http.Response response) {
     final code = response.statusCode;
 

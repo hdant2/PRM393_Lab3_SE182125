@@ -1,3 +1,9 @@
+// =============================================================================
+// journal_detail_screen.dart — CHI TIẾT JOURNAL / NGUỒN XUẤT BẢN
+// =============================================================================
+// Filter primary_location.source.id — trend, top authors, papers paginated.
+// =============================================================================
+
 import 'package:flutter/material.dart';
 
 import '../models/openalex_ranked_entity.dart';
@@ -16,6 +22,7 @@ import '../widgets/ranked_list_widgets.dart';
 import '../widgets/trend_chart.dart';
 import 'author_detail_screen.dart';
 
+/// Màn chi tiết **journal/source** — filter `primary_location.source.id`.
 class JournalDetailScreen extends StatefulWidget {
   final OpenAlexRankedEntity journal;
   final PublicationProvider provider;
@@ -48,6 +55,7 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
     _loadInitial();
   }
 
+  /// Papers trang 1 + trend + top authors (song song).
   Future<void> _loadInitial() async {
     setState(() {
       _loading = true;
@@ -90,6 +98,7 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
     }
   }
 
+  /// Phân trang thêm 20 bài.
   Future<void> _loadMore() async {
     if (!_hasMore || _loadingMore) return;
 
@@ -116,11 +125,13 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
     }
   }
 
+  /// Avg citations trên các bài đã load.
   double get _avgCitations {
     if (_papers.isEmpty) return 0;
     return _papers.fold<int>(0, (sum, p) => sum + p.citations) / _papers.length;
   }
 
+  /// UI tương tự AuthorDetail nhưng section cuối là Top Authors.
   @override
   Widget build(BuildContext context) {
     final totalCount =
@@ -307,6 +318,7 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
   }
 }
 
+/// Cột stat nhỏ (Publications / Avg Citations / Loaded).
 class _StatCol extends StatelessWidget {
   final String label;
   final String value;

@@ -1,3 +1,9 @@
+// =============================================================================
+// insight_widgets.dart — WIDGET INSIGHT / TREND PHỤ
+// =============================================================================
+// InsightSection, GrowthLabel, MomentumBadge, YearBreakdownRow, TopicGrowthRow
+// =============================================================================
+
 import 'package:flutter/material.dart';
 
 import '../models/research_insight.dart';
@@ -5,6 +11,7 @@ import '../theme/app_theme.dart';
 import '../utils/research_insights.dart';
 import 'app_logo.dart';
 
+/// Section có emoji + title + insight text + child widget
 class InsightSection extends StatelessWidget {
   final String emoji;
   final String title;
@@ -57,6 +64,7 @@ class InsightSection extends StatelessWidget {
   }
 }
 
+/// Wrapper MockupCard cho insight blocks
 class InsightCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -73,6 +81,7 @@ class InsightCard extends StatelessWidget {
   }
 }
 
+/// Text +42% / -5% có màu
 class GrowthLabel extends StatelessWidget {
   final double percent;
 
@@ -91,6 +100,7 @@ class GrowthLabel extends StatelessWidget {
   }
 }
 
+/// Badge HIGH / MEDIUM / LOW / DECLINING
 class MomentumBadge extends StatelessWidget {
   final MomentumLevel level;
 
@@ -117,6 +127,7 @@ class MomentumBadge extends StatelessWidget {
   }
 }
 
+/// Một dòng breakdown theo năm — TrendScreen list + tap → YearDetail
 class YearBreakdownRow extends StatelessWidget {
   final int year;
   final int count;
@@ -197,6 +208,7 @@ class YearBreakdownRow extends StatelessWidget {
   }
 }
 
+/// Một dòng emerging topic — tên + % growth
 class TopicGrowthRow extends StatelessWidget {
   final String name;
   final double growthPercent;

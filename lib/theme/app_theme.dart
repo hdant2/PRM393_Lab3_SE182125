@@ -1,5 +1,13 @@
+// =============================================================================
+// app_theme.dart — MÀU SẮC & THEME MATERIAL 3
+// =============================================================================
+// AppColors: palette JournalAI (trắng/xám/đen tối giản).
+// buildAppTheme(): gọi 1 lần trong main.dart → MaterialApp.theme
+// =============================================================================
+
 import 'package:flutter/material.dart';
 
+/// Bảng màu cố định — dùng AppColors.xxx thay vì hard-code hex trong widget
 class AppColors {
   static const background = Color(0xFFF7F7F7);
   static const surface = Colors.white;
@@ -12,6 +20,7 @@ class AppColors {
   static const error = Color(0xFFB00020);
 }
 
+/// Theme sáng, Material 3 — navigation bar, input, card bo góc 16
 ThemeData buildAppTheme() {
   const colorScheme = ColorScheme.light(
     surface: AppColors.surface,

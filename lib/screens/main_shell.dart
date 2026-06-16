@@ -1,3 +1,9 @@
+// =============================================================================
+// main_shell.dart — KHUNG CHÍNH (3 TAB)
+// =============================================================================
+// Overview | Explore | About — trend analytics nằm trong Explore sau search
+// =============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -6,7 +12,6 @@ import '../providers/publication_provider.dart';
 import 'about_screen.dart';
 import 'overview_screen.dart';
 import 'search_screen.dart';
-import 'trend_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -18,7 +23,6 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   static const _pages = [
     OverviewScreen(),
-    TrendScreen(),
     SearchScreen(),
     AboutScreen(),
   ];
@@ -31,6 +35,7 @@ class _MainShellState extends State<MainShell> {
       if (!provider.hasData && !provider.isDashboardLoading) {
         provider.loadDefaultDashboard();
       }
+      provider.loadRecentSearches();
     });
   }
 
@@ -53,11 +58,6 @@ class _MainShellState extends State<MainShell> {
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home),
             label: 'Overview',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart),
-            label: 'Analytics',
           ),
           NavigationDestination(
             icon: Icon(Icons.explore_outlined),

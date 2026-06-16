@@ -4,23 +4,54 @@ import '../models/openalex_ranked_entity.dart';
 import '../models/openalex_works_result.dart';
 import '../models/publication.dart';
 import '../models/research_insight.dart';
+import '../services/openalex_config.dart';
 import '../services/openalex_exception.dart';
 import '../services/openalex_service.dart';
+import '../services/recent_searches_service.dart';
 import '../utils/count_format.dart';
 import '../utils/research_insights.dart';
 
+// =============================================================================
+// publication_provider.dart — TẦNG STATE (Provider pattern)
+// =============================================================================
+// UI không gọi OpenAlex trực tiếp — chỉ đọc/ghi qua class này.
+//
+// Hai chế độ phân tích:
+//   AnalysisScope.global → Overview/Analytics mặc định (bài influential sau 2015)
+//   AnalysisScope.topic  → user search "ras", "AI"… trên Explore
+//
+// Luồng search (Explore):
+//   1. searchPublications() — load 20 bài trang 1 NGAY (isSearchLoading)
+//   2. _loadSearchMetricsInBackground() — trend, top author, journal… (isTrendLoading)
+//   3. loadMoreSearchPublications() — cuộn xuống load thêm 20 bài
+//
+// _searchGeneration: tránh race condition — search cũ không ghi đè search mới
+// =============================================================================
+
+/// global = dashboard mặc định; topic = đang search một chủ đề
 enum AnalysisScope { global, topic }
 
+/// ChangeNotifier: khi data đổi → notifyListeners() → UI rebuild
 class PublicationProvider extends ChangeNotifier {
-  final OpenAlexService _openAlexService = OpenAlexService();
+  PublicationProvider({required OpenAlexConfig config})
+      : _config = config,
+        _openAlexService = OpenAlexService(config),
+        _recentSearchesService = RecentSearchesService();
+
+  final OpenAlexConfig _config;
+  final OpenAlexService _openAlexService;
+  final RecentSearchesService _recentSearchesService;
 
   static const globalTopicLabel = 'Global Research Overview';
 
+  // --- Phạm vi hiện tại ---
   AnalysisScope scope = AnalysisScope.global;
   String currentTopic = globalTopicLabel;
-  List<Publication> publications = [];
-  List<Publication> topPapersOpenAlex = [];
-  Map<int, int> yearlyTrendFromOpenAlex = {};
+
+  // --- Dữ liệu hiển thị trên UI ---
+  List<Publication> publications = []; // danh sách chính (search / global list)
+  List<Publication> topPapersOpenAlex = []; // Citation Leaders (top 10 cited)
+  Map<int, int> yearlyTrendFromOpenAlex = {}; // năm → số bài
   Map<int, int> citationsByYearOpenAlex = {};
   Map<int, int> avgCitationsByYearOpenAlex = {};
   List<OpenAlexRankedEntity> topAuthorsOpenAlex = [];
@@ -28,15 +59,19 @@ class PublicationProvider extends ChangeNotifier {
   List<OpenAlexRankedEntity> topResearchAreasOpenAlex = [];
   List<TopicGrowthInsight> growingTopicsOpenAlex = [];
   double averageCitationOpenAlex = 0;
-  int totalOnOpenAlex = 0;
+  int totalOnOpenAlex = 0; // meta.count từ API (~201K khi search "ras")
+
+  // --- Trạng thái loading (tách riêng để UI không spin cả màn) ---
   bool isDashboardLoading = false;
-  bool isSearchLoading = false;
-  bool isTrendLoading = false;
+  bool isSearchLoading = false; // đang load 20 bài đầu search
+  bool isTrendLoading = false; // đang load metrics phụ (chart, top author…)
   bool isLoadingMorePublications = false;
   bool searchHasMore = false;
   int searchListPage = 0;
   String? errorMessage;
+  List<String> recentSearches = [];
 
+  /// Tăng mỗi lần user search — request cũ bị bỏ qua nếu generation không khớp
   int _searchGeneration = 0;
 
   bool get isLoading =>
@@ -107,6 +142,7 @@ class PublicationProvider extends ChangeNotifier {
     return null;
   }
 
+  /// Mở app / "Back to global overview" — load dashboard toàn cục
   Future<void> loadDefaultDashboard() async {
     isDashboardLoading = true;
     isTrendLoading = true;
@@ -135,21 +171,27 @@ class PublicationProvider extends ChangeNotifier {
     }
   }
 
+  /// User bấm search trên Explore — 2 phase: bài trước, metrics sau
   Future<void> searchPublications(String topic) async {
     final generation = ++_searchGeneration;
+    final trimmed = topic.trim();
+    if (trimmed.isEmpty) return;
+
+    recentSearches = await _recentSearchesService.add(trimmed);
 
     isSearchLoading = true;
     scope = AnalysisScope.topic;
-    currentTopic = topic;
+    currentTopic = trimmed;
     errorMessage = null;
     searchListPage = 0;
     searchHasMore = false;
     publications = [];
-    _clearTopicMetrics();
+    _clearTopicMetrics(); // xóa số global cũ để không hiện 937K nhầm
     notifyListeners();
 
     try {
-      final works = await _openAlexService.searchPublications(topic);
+      // Phase 1: 20 bài relevance (giống OpenAlex web)
+      final works = await _openAlexService.searchPublications(trimmed);
       if (generation != _searchGeneration) return;
 
       publications = works.publications;
@@ -169,9 +211,23 @@ class PublicationProvider extends ChangeNotifier {
     }
 
     if (generation != _searchGeneration) return;
-    _loadSearchMetricsInBackground(topic, generation);
+    // Phase 2: trend, top author/journal — không chặn danh sách bài
+    _loadSearchMetricsInBackground(trimmed, generation);
   }
 
+  /// Đọc recent searches từ SharedPreferences (tab Home).
+  Future<void> loadRecentSearches() async {
+    recentSearches = await _recentSearchesService.load();
+    notifyListeners();
+  }
+
+  /// Xóa toàn bộ lịch sử search.
+  Future<void> clearRecentSearches() async {
+    recentSearches = await _recentSearchesService.clear();
+    notifyListeners();
+  }
+
+  /// Gọi nền sau khi 20 bài đã hiện — isTrendLoading = true trong lúc chờ
   void _loadSearchMetricsInBackground(String topic, int generation) {
     isTrendLoading = true;
     notifyListeners();
@@ -187,8 +243,10 @@ class PublicationProvider extends ChangeNotifier {
     });
   }
 
+  /// true khi topic snapshot (Growth, Momentum…) đã load xong
   bool get isTopicInsightsReady => !isGlobalScope && !isTrendLoading;
 
+  /// Cuộn Explore — load trang search tiếp theo (+20 bài).
   Future<void> loadMoreSearchPublications() async {
     if (!searchHasMore || isLoadingMorePublications || isGlobalScope) return;
 
@@ -218,6 +276,11 @@ class PublicationProvider extends ChangeNotifier {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Delegate load* — màn detail gọi qua đây, tự gắn search/global filter
+  // ---------------------------------------------------------------------------
+
+  /// Pull-to-refresh — reload dashboard hoặc search hiện tại.
   Future<void> refreshCurrentAnalysis() async {
     if (isGlobalScope) {
       await loadDefaultDashboard();
@@ -226,6 +289,7 @@ class PublicationProvider extends ChangeNotifier {
     }
   }
 
+  /// YearDetailScreen — bài của 1 năm (scoped search nếu có).
   Future<List<Publication>> loadPublicationsForYear(int year) {
     if (isGlobalScope) {
       return _openAlexService.fetchPublicationsForYear(
@@ -239,6 +303,7 @@ class PublicationProvider extends ChangeNotifier {
     );
   }
 
+  /// YearDetail — phân trang bài theo năm.
   Future<OpenAlexWorksResult> loadPublicationsForYearPage(
     int year,
     int page,
@@ -257,6 +322,7 @@ class PublicationProvider extends ChangeNotifier {
     );
   }
 
+  /// Hot topics chips trên YearDetail.
   Future<List<OpenAlexRankedEntity>> loadConceptsForYear(int year) {
     if (isGlobalScope) {
       return _openAlexService.fetchConceptsForYear(
@@ -301,6 +367,7 @@ class PublicationProvider extends ChangeNotifier {
     );
   }
 
+  /// DetailScreen — related works từ OpenAlex.
   Future<List<Publication>> loadRelatedWorks(Publication publication) {
     return _openAlexService.fetchRelatedWorks(
       relatedWorkIds: publication.relatedWorkIds,
@@ -308,6 +375,7 @@ class PublicationProvider extends ChangeNotifier {
     );
   }
 
+  /// DomainDetail — trend chart của concept.
   Future<Map<int, int>> loadConceptTrend(OpenAlexRankedEntity concept) {
     if (isGlobalScope) {
       return _openAlexService.fetchConceptYearlyTrend(
@@ -321,6 +389,7 @@ class PublicationProvider extends ChangeNotifier {
     );
   }
 
+  /// DomainDetail — top authors trong concept.
   Future<List<OpenAlexRankedEntity>> loadConceptTopAuthors(
     OpenAlexRankedEntity concept,
   ) {
@@ -336,6 +405,7 @@ class PublicationProvider extends ChangeNotifier {
     );
   }
 
+  /// DomainDetail — top journals trong concept.
   Future<List<OpenAlexRankedEntity>> loadConceptTopJournals(
     OpenAlexRankedEntity concept,
   ) {
@@ -351,6 +421,7 @@ class PublicationProvider extends ChangeNotifier {
     );
   }
 
+  /// DomainDetail — papers paginated (gọi từ _load / _loadMorePapers).
   Future<OpenAlexWorksResult> loadConceptWorksPage(
     OpenAlexRankedEntity concept,
     int page,
@@ -369,6 +440,7 @@ class PublicationProvider extends ChangeNotifier {
     );
   }
 
+  /// AuthorDetail — trend theo năm.
   Future<Map<int, int>> loadAuthorTrend(OpenAlexRankedEntity author) {
     if (isGlobalScope) {
       return _openAlexService.fetchAuthorYearlyTrend(
@@ -382,6 +454,7 @@ class PublicationProvider extends ChangeNotifier {
     );
   }
 
+  /// AuthorDetail — top journals của author.
   Future<List<OpenAlexRankedEntity>> loadAuthorTopJournals(
     OpenAlexRankedEntity author,
   ) {
@@ -397,6 +470,7 @@ class PublicationProvider extends ChangeNotifier {
     );
   }
 
+  /// JournalDetail — trend theo năm.
   Future<Map<int, int>> loadJournalTrend(OpenAlexRankedEntity journal) {
     if (isGlobalScope) {
       return _openAlexService.fetchSourceYearlyTrend(
@@ -410,6 +484,7 @@ class PublicationProvider extends ChangeNotifier {
     );
   }
 
+  /// JournalDetail — top authors trên journal.
   Future<List<OpenAlexRankedEntity>> loadJournalTopAuthors(
     OpenAlexRankedEntity journal,
   ) {
@@ -435,6 +510,18 @@ class PublicationProvider extends ChangeNotifier {
       }
     }
     return null;
+  }
+
+  OpenAlexConfig get openAlexConfig => _config;
+
+  Future<void> saveOpenAlexApiKey(String key) async {
+    await _config.saveKey(key);
+    notifyListeners();
+  }
+
+  Future<void> clearOpenAlexApiKey() async {
+    await _config.clearSavedKey();
+    notifyListeners();
   }
 
   Future<List<Publication>> loadWorksByJournal(
@@ -474,6 +561,7 @@ class PublicationProvider extends ChangeNotifier {
     return yearlyTrendFromOpenAlex[year] ?? 0;
   }
 
+  /// Xóa metrics topic khi search mới — tránh hiện số global cũ.
   void _clearTopicMetrics() {
     topPapersOpenAlex = [];
     yearlyTrendFromOpenAlex = {};
@@ -487,6 +575,7 @@ class PublicationProvider extends ChangeNotifier {
     totalOnOpenAlex = 0;
   }
 
+  /// Reset toàn bộ state khi lỗi nặng.
   void _clearAllData() {
     publications = [];
     _clearTopicMetrics();
@@ -494,12 +583,14 @@ class PublicationProvider extends ChangeNotifier {
     searchListPage = 0;
   }
 
+  /// OpenAlexException → string hiển thị ErrorBanner.
   String _mapError(Object e) {
     return e is OpenAlexException
         ? e.message
         : e.toString().replaceFirst('Exception: ', '');
   }
 
+  /// Gom mọi metrics OpenAlex (gọi song song tuần tự trong hàm này)
   Future<void> _loadAllOpenAlexMetrics({
     String? search,
     bool globalInfluential = false,
@@ -507,6 +598,7 @@ class PublicationProvider extends ChangeNotifier {
     isTrendLoading = true;
     notifyListeners();
 
+    // group_by publication_year → biểu đồ trend
     yearlyTrendFromOpenAlex = await _tryAggregate(
       () => _openAlexService.fetchPublicationTrendByYear(
         search: search,
@@ -560,7 +652,7 @@ class PublicationProvider extends ChangeNotifier {
         limit: 10,
       ),
       [],
-    );
+    ); // sort citations — khác danh sách Explore (relevance)
 
     averageCitationOpenAlex = await _tryAggregate(
       () => _openAlexService.fetchAverageCitation(
@@ -584,6 +676,7 @@ class PublicationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Một API lỗi không làm crash cả dashboard — trả fallback rỗng/0
   Future<T> _tryAggregate<T>(Future<T> Function() load, T fallback) async {
     try {
       return await load();

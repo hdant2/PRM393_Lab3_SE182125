@@ -1,3 +1,9 @@
+// =============================================================================
+// research_domains_screen.dart — RESEARCH DOMAINS (donut + list)
+// =============================================================================
+// Top concepts từ group_by — diagram liên quan #3 Top Keywords.
+// =============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -6,7 +12,9 @@ import '../providers/publication_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/count_format.dart';
 import '../widgets/app_logo.dart';
+import '../widgets/research_landscape_grid.dart';
 import 'domain_detail_screen.dart';
+import 'keywords_overview_screen.dart';
 
 class ResearchDomainsScreen extends StatelessWidget {
   const ResearchDomainsScreen({super.key});
@@ -72,6 +80,44 @@ class ResearchDomainsScreen extends StatelessWidget {
                 ),
               ),
             ),
+          const SizedBox(height: 28),
+          const Text(
+            'Keyword Landscape',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Domain size by publication volume',
+            style: TextStyle(color: AppColors.textTertiary, fontSize: 11),
+          ),
+          const SizedBox(height: 10),
+          MockupCard(
+            child: ResearchLandscapeGrid(
+              domains: domains,
+              onDomainTap: (domain) => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => DomainDetailScreen(domain: domain),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          LandscapeTile(
+            icon: Icons.tag_outlined,
+            title: 'Keyword Overview',
+            subtitle: 'Top keywords and emerging topics',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const KeywordsOverviewScreen(),
+              ),
+            ),
+          ),
         ],
       ),
     );

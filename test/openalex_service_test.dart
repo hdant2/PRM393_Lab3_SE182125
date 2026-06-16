@@ -1,7 +1,10 @@
+// Test OpenAlexService — error mapping + live API (cần OPENALEX_API_KEY)
+
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:lab2/services/openalex_config.dart';
 import 'package:lab2/services/openalex_exception.dart';
 import 'package:lab2/services/openalex_service.dart';
 
@@ -24,7 +27,8 @@ void main() {
           return;
         }
 
-        final service = OpenAlexService();
+        final config = OpenAlexConfig();
+        final service = OpenAlexService(config);
 
         try {
           final result = await service

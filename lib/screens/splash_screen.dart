@@ -1,3 +1,5 @@
+// Splash: preload dashboard → chuyển MainShell (4 tab Home/Journal/Keywords/Profile)
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -6,6 +8,7 @@ import '../theme/app_theme.dart';
 import '../widgets/app_logo.dart';
 import 'main_shell.dart';
 
+/// Màn mở đầu — loadDefaultDashboard() rồi pushReplacement MainShell
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -20,6 +23,7 @@ class _SplashScreenState extends State<SplashScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _bootstrap());
   }
 
+  /// Preload data trước khi user thấy tab Home
   Future<void> _bootstrap() async {
     final provider = context.read<PublicationProvider>();
     await provider.loadDefaultDashboard();

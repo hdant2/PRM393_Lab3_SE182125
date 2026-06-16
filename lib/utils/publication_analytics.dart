@@ -1,18 +1,28 @@
+// =============================================================================
+// publication_analytics.dart — PHÂN TÍCH LOCAL (KHÔNG GỌI API)
+// =============================================================================
+// Tính trend/top author/journal từ List<Publication> đã có sẵn.
+// UI chính dùng OpenAlex group_by; class này phục vụ unit test & fallback logic.
+// =============================================================================
+
 import '../models/publication.dart';
 
 class PublicationAnalytics {
+  /// Trung bình cited_by_count trong list
   static double averageCitation(List<Publication> publications) {
     if (publications.isEmpty) return 0;
     final total = publications.fold(0, (sum, p) => sum + p.citations);
     return total / publications.length;
   }
 
+  /// Năm có nhiều bài nhất
   static String mostActiveYear(List<Publication> publications) {
     final yearCount = groupByYear(publications);
     if (yearCount.isEmpty) return 'N/A';
     return '${yearCount.entries.reduce((a, b) => a.value >= b.value ? a : b).key}';
   }
 
+  /// Map năm → số bài
   static Map<int, int> groupByYear(List<Publication> publications) {
     final yearlyData = <int, int>{};
     for (final p in publications) {
@@ -22,6 +32,7 @@ class PublicationAnalytics {
     return yearlyData;
   }
 
+  /// Map năm → tổng citations
   static Map<int, int> citationsByYear(List<Publication> publications) {
     final yearlyData = <int, int>{};
     for (final p in publications) {
@@ -31,6 +42,7 @@ class PublicationAnalytics {
     return yearlyData;
   }
 
+  /// Map năm → citations trung bình mỗi bài
   static Map<int, int> averageCitationsByYear(List<Publication> publications) {
     final totals = <int, int>{};
     final counts = <int, int>{};
@@ -45,6 +57,7 @@ class PublicationAnalytics {
     };
   }
 
+  /// Lọc bài theo năm, sort citations desc
   static List<Publication> papersForYear(
     List<Publication> publications,
     int year,

@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../utils/count_format.dart';
 
+// Bar chart ngang top journals — diagram #14 (JournalsAnalysisScreen)
+
+/// Bar chart ngang cho Top Journals
 class JournalBarChart extends StatelessWidget {
   final List<MapEntry<String, int>> journals;
   final void Function(String journalName)? onJournalTap;

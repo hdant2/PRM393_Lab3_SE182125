@@ -1,3 +1,4 @@
+// Một dòng bài trong list — tap mở DetailScreen
 import 'package:flutter/material.dart';
 
 import '../models/publication.dart';
@@ -5,6 +6,7 @@ import '../screens/detail_screen.dart';
 import '../theme/app_theme.dart';
 import '../utils/count_format.dart';
 
+/// Card compact: title, journal, year, citations — dùng Explore, Journal tab, detail lists
 class PublicationCard extends StatelessWidget {
   final Publication publication;
 
@@ -15,21 +17,26 @@ class PublicationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => DetailScreen(publication: publication),
-              ),
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 14),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => DetailScreen(publication: publication),
+            ),
+          ),
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.border),
+            ),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: Column(
@@ -41,24 +48,14 @@ class PublicationCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                          color: AppColors.textPrimary,
-                          height: 1.35,
+                          fontSize: 14,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4),
                       Text(
-                        publication.journal,
+                        '${publication.journal} · ${publication.year}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 13,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        '${publication.year}    ${formatOpenAlexCount(publication.citations)} citations',
                         style: const TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 12,
@@ -67,17 +64,37 @@ class PublicationCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      formatOpenAlexCount(publication.citations),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const Text(
+                      'citations',
+                      style: TextStyle(
+                        color: AppColors.textTertiary,
+                        fontSize: 9,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 4),
                 const Icon(
                   Icons.chevron_right,
                   size: 18,
-                  color: AppColors.textSecondary,
+                  color: AppColors.textTertiary,
                 ),
               ],
             ),
           ),
         ),
-        const Divider(height: 1, color: AppColors.border),
-      ],
+      ),
     );
   }
 }

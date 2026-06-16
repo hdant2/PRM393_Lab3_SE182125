@@ -1,3 +1,7 @@
+// =============================================================================
+// top_authors_screen.dart — DANH SÁCH TOP AUTHORS (màn classic)
+// =============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

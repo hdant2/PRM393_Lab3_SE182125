@@ -1,3 +1,4 @@
+// Header màn hình có nút back/menu (legacy — ít dùng trong tab mới)
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';

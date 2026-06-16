@@ -1,3 +1,9 @@
+// =============================================================================
+// domain_detail_screen.dart — CHI TIẾT RESEARCH DOMAIN (OpenAlex concept)
+// =============================================================================
+// Filter concepts.id — trend, top authors/journals, papers, donut chart.
+// =============================================================================
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -19,6 +25,8 @@ import '../widgets/ranked_list_widgets.dart';
 import 'author_detail_screen.dart';
 import 'journal_detail_screen.dart';
 
+/// Màn chi tiết một **research domain** (OpenAlex concept).
+/// Nhận [domain] từ Research Domains / Keyword Overview / Home landscape.
 class DomainDetailScreen extends StatefulWidget {
   final OpenAlexRankedEntity domain;
 
@@ -28,25 +36,30 @@ class DomainDetailScreen extends StatefulWidget {
   State<DomainDetailScreen> createState() => _DomainDetailScreenState();
 }
 
+/// State local — data load riêng cho domain này, không lưu trong provider global.
 class _DomainDetailScreenState extends State<DomainDetailScreen> {
-  Map<int, int> _trend = {};
+  Map<int, int> _trend = {}; // năm → số bài có concept này
   List<OpenAlexRankedEntity> _authors = [];
   List<OpenAlexRankedEntity> _journals = [];
   List<Publication> _papers = [];
-  int _papersTotal = 0;
-  int _papersPage = 0;
+  int _papersTotal = 0; // meta.count từ API
+  int _papersPage = 0; // trang đã load (20 bài/trang)
   bool _papersHasMore = false;
-  TrendInsight? _insight;
+  TrendInsight? _insight; // % growth tính từ _trend
   bool _loading = true;
   bool _loadingMorePapers = false;
   String? _error;
 
+  /// Tự gọi _load() khi màn hình mở lần đầu.
   @override
   void initState() {
     super.initState();
     _load();
   }
 
+  /// Load song song 4 API scoped filter `concepts.id:{domain.id}`:
+  /// trend, top authors, top journals, papers trang 1.
+  /// Nếu đang search topic → provider tự gắn thêm search=currentTopic.
   Future<void> _load() async {
     setState(() {
       _loading = true;
@@ -90,6 +103,7 @@ class _DomainDetailScreenState extends State<DomainDetailScreen> {
     }
   }
 
+  /// Phân trang papers — gọi loadConceptWorksPage trang tiếp theo, append vào _papers.
   Future<void> _loadMorePapers() async {
     if (!_papersHasMore || _loadingMorePapers) return;
 
@@ -117,6 +131,7 @@ class _DomainDetailScreenState extends State<DomainDetailScreen> {
     }
   }
 
+  /// Vẽ UI: loading / lỗi / ListView các section (stats, chart, papers, authors, journals).
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<PublicationProvider>();
@@ -355,6 +370,7 @@ class _DomainDetailScreenState extends State<DomainDetailScreen> {
   }
 }
 
+/// Donut chart phân bổ domain — dùng ở ResearchDomainsScreen.
 class DomainDonutChart extends StatelessWidget {
   final List<OpenAlexRankedEntity> domains;
 
@@ -371,6 +387,7 @@ class DomainDonutChart extends StatelessWidget {
     Color(0xFF909090),
   ];
 
+  /// PieChart (fl_chart) + legend 5 domain đầu + % share.
   @override
   Widget build(BuildContext context) {
     if (domains.isEmpty) return const SizedBox.shrink();
@@ -435,6 +452,7 @@ class DomainDonutChart extends StatelessWidget {
   }
 }
 
+/// Một dòng chú thích màu bên cạnh donut chart.
 class _LegendRow extends StatelessWidget {
   final Color color;
   final String name;
@@ -448,6 +466,7 @@ class _LegendRow extends StatelessWidget {
     required this.percent,
   });
 
+  /// Hiển thị chấm màu + tên domain + count + %.
   @override
   Widget build(BuildContext context) {
     return Padding(

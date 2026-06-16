@@ -1,3 +1,5 @@
+// Test Publication.fromJson — map JSON OpenAlex → model
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:lab2/models/publication.dart';

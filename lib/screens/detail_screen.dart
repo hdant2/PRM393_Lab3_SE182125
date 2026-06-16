@@ -11,6 +11,12 @@ import '../theme/app_theme.dart';
 import '../utils/count_format.dart';
 import 'author_detail_screen.dart';
 
+// =============================================================================
+// detail_screen.dart — CHI TIẾT MỘT BÀI BÁO
+// =============================================================================
+// Abstract, authors (tap → AuthorDetail), DOI copy, read links, related works.
+// =============================================================================
+
 class DetailScreen extends StatefulWidget {
   final Publication publication;
 

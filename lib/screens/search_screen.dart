@@ -1,3 +1,10 @@
+// =============================================================================
+// search_screen.dart — EXPLORE / SEARCH (màn cũ, mở từ Home)
+// =============================================================================
+// Search topic → provider.searchPublications → snapshot + load more 20 bài.
+// Recent Searches chips khi chưa search. SearchLoadingView khi chờ bài đầu.
+// =============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -11,11 +18,15 @@ import '../widgets/error_banner.dart';
 import '../widgets/insight_widgets.dart';
 import '../widgets/load_more_footer.dart';
 import '../widgets/publication_card.dart';
+import '../widgets/search_loading_view.dart';
+import '../widgets/topic_trend_analytics.dart';
 import 'author_detail_screen.dart';
 import 'journal_detail_screen.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+  final String? initialQuery;
+
+  const SearchScreen({super.key, this.initialQuery});
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -32,6 +43,19 @@ class _SearchScreenState extends State<SearchScreen> {
     'Generative AI',
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    final preset = widget.initialQuery?.trim();
+    if (preset != null && preset.isNotEmpty) {
+      _searchController.text = preset;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<PublicationProvider>().loadRecentSearches();
+    });
+  }
+
+  /// Gọi provider.searchPublications — presetTopic dùng cho chip gợi ý
   Future<void> _search([String? presetTopic]) async {
     if (presetTopic != null) _searchController.text = presetTopic;
     final topic = _searchController.text.trim();
@@ -49,9 +73,12 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<PublicationProvider>();
-    final inTopicScope = !provider.isGlobalScope;
+    final inTopicScope = !provider.isGlobalScope; // đã search hay chưa
     final snapshot = provider.topicSnapshot;
     final loadingPapers = provider.isSearchLoading;
+    // Chỉ full-screen loading khi chưa có bài nào (search mới)
+    final showSearchLoading =
+        loadingPapers && provider.publications.isEmpty;
 
     return SafeArea(
       child: Column(
@@ -73,7 +100,7 @@ class _SearchScreenState extends State<SearchScreen> {
               decoration: InputDecoration(
                 hintText: 'Search research topics...',
                 prefixIcon: const Icon(Icons.search, size: 20),
-                suffixIcon: loadingPapers
+                suffixIcon: showSearchLoading
                     ? const Padding(
                         padding: EdgeInsets.all(12),
                         child: SizedBox(
@@ -84,7 +111,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       )
                     : IconButton(
                         icon: const Icon(Icons.arrow_forward, size: 20),
-                        onPressed: loadingPapers ? null : () => _search(),
+                        onPressed: showSearchLoading ? null : () => _search(),
                       ),
               ),
             ),
@@ -97,28 +124,60 @@ class _SearchScreenState extends State<SearchScreen> {
                 onRetry: () => _search(),
               ),
             ),
+          if (!inTopicScope && provider.recentSearches.isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Recent Searches',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: provider.recentSearches.map((topic) {
+                      return ActionChip(
+                        label: Text(topic),
+                        onPressed: loadingPapers ? null : () => _search(topic),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+          ],
           if (inTopicScope)
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
               child: TextButton(
-                onPressed: loadingPapers
+                onPressed: showSearchLoading
                     ? null
                     : () => provider.loadDefaultDashboard(),
                 child: const Text('Back to global overview'),
               ),
             ),
           Expanded(
-            child: inTopicScope
-                ? _ExploreResults(
-                    provider: provider,
-                    snapshot: snapshot,
-                    loadingPapers: loadingPapers,
-                    loadingInsights: provider.isTrendLoading,
+            child: showSearchLoading
+                ? SearchLoadingView(
+                    query: provider.currentTopic,
                   )
-                : _ExploreSuggestions(
-                    onSearch: _search,
-                    loadingPapers: loadingPapers,
-                  ),
+                : inTopicScope
+                    ? _ExploreResults(
+                        provider: provider,
+                        snapshot: snapshot,
+                        loadingInsights: provider.isTrendLoading,
+                      )
+                    : _ExploreSuggestions(
+                        onSearch: _search,
+                        loadingPapers: loadingPapers,
+                      ),
           ),
         ],
       ),
@@ -127,15 +186,14 @@ class _SearchScreenState extends State<SearchScreen> {
 }
 
 class _ExploreResults extends StatelessWidget {
+  /// UI sau khi search — đọc hết từ PublicationProvider
   final PublicationProvider provider;
   final TopicSnapshot? snapshot;
-  final bool loadingPapers;
   final bool loadingInsights;
 
   const _ExploreResults({
     required this.provider,
     required this.snapshot,
-    required this.loadingPapers,
     required this.loadingInsights,
   });
 
@@ -251,6 +309,8 @@ class _ExploreResults extends StatelessWidget {
           ),
           const SizedBox(height: 20),
         ],
+        TopicTrendAnalyticsPanel(provider: provider),
+        const SizedBox(height: 20),
         if (showInsights && journals.isNotEmpty) ...[
           const Text(
             'Top Journals',
@@ -377,18 +437,7 @@ class _ExploreResults extends StatelessWidget {
           style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
         ),
         const SizedBox(height: 8),
-        if (loadingPapers && provider.publications.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 24),
-            child: Center(
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
-          )
-        else if (provider.publications.isEmpty)
+        if (provider.publications.isEmpty)
           const Text(
             'No publications found for this topic.',
             style: TextStyle(color: AppColors.textSecondary),

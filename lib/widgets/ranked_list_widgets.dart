@@ -1,3 +1,9 @@
+// =============================================================================
+// ranked_list_widgets.dart — BẢNG XẾP HẠNG CÓ NHÃN METRIC
+// =============================================================================
+// ScreenSectionHeader, RankedMetricTile, RankedListHeader — detail screens.
+// =============================================================================
+
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
@@ -139,7 +145,10 @@ class RankedListHeader extends StatelessWidget {
         children: [
           const SizedBox(
             width: 24,
-            child: Text('#', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+            child: Text(
+              '#',
+              style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+            ),
           ),
           const Expanded(
             child: Text(

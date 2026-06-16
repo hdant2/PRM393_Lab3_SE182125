@@ -1,3 +1,10 @@
+// =============================================================================
+// year_detail_screen.dart — CHI TIẾT MỘT NĂM TRÊN BIỂU ĐỒ
+// =============================================================================
+// Tap cột năm trên TrendScreen → papers năm đó + hot topics (concepts).
+// Chip concept tap → DomainDetailScreen.
+// =============================================================================
+
 import 'package:flutter/material.dart';
 
 import '../models/openalex_ranked_entity.dart';

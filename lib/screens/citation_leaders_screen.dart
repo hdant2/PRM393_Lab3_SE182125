@@ -1,3 +1,9 @@
+// =============================================================================
+// citation_leaders_screen.dart — TOP PAPERS + AUTHORS THEO CITATIONS
+// =============================================================================
+// Sort cited_by_count — khác danh sách Explore (relevance).
+// =============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -7,6 +13,7 @@ import '../widgets/ranked_list_widgets.dart';
 import 'author_detail_screen.dart';
 import 'detail_screen.dart';
 import 'journal_detail_screen.dart';
+import 'research_leaders_screen.dart';
 
 class CitationLeadersScreen extends StatelessWidget {
   const CitationLeadersScreen({super.key});
@@ -90,6 +97,19 @@ class _AuthorsTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton.icon(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const ResearchLeadersScreen(),
+              ),
+            ),
+            icon: const Icon(Icons.leaderboard_outlined, size: 18),
+            label: const Text('Research leaders by volume'),
+          ),
+        ),
         const RankedListHeader(metricColumnLabel: 'Publications'),
         ...authors.asMap().entries.map(
               (entry) => RankedMetricTile(
