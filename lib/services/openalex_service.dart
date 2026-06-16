@@ -926,27 +926,25 @@ class OpenAlexService {
         }
         break;
       } on TimeoutException {
-        if (!_canRetryAttempt(attempt)) {
-          throw OpenAlexException(
+        await _retryOrFail(
+          attempt,
+          OpenAlexException(
             'OpenAlex khong phan hoi (timeout). Server co the dang qua tai - '
             'thu doi Wi-Fi/4G hoac bam Retry.',
-          );
-        }
-        await _backoff(attempt);
+          ),
+        );
       } on SocketException {
-        if (!_canRetryAttempt(attempt)) {
-          throw OpenAlexException(
+        await _retryOrFail(
+          attempt,
+          OpenAlexException(
             'Khong ket noi duoc OpenAlex. Kiem tra internet tren thiet bi.',
-          );
-        }
-        await _backoff(attempt);
+          ),
+        );
       } on http.ClientException catch (e) {
-        if (!_canRetryAttempt(attempt)) {
-          throw OpenAlexException(
-            'Loi mang khi goi OpenAlex: ${e.message}',
-          );
-        }
-        await _backoff(attempt);
+        await _retryOrFail(
+          attempt,
+          OpenAlexException('Loi mang khi goi OpenAlex: ${e.message}'),
+        );
       }
     }
 
@@ -975,6 +973,13 @@ class OpenAlexService {
 
   bool _canRetryHttpStatus(int statusCode, int attempt) {
     return _retryStatusCodes.contains(statusCode) && _canRetryAttempt(attempt);
+  }
+
+  Future<void> _retryOrFail(int attempt, OpenAlexException failure) async {
+    if (!_canRetryAttempt(attempt)) {
+      throw failure;
+    }
+    await _backoff(attempt);
   }
 
   /// Chờ tăng dần giữa các lần retry (1.5s, 3s, 4.5s…).

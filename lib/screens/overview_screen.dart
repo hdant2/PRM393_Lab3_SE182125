@@ -164,75 +164,7 @@ class _OverviewBody extends StatelessWidget {
                         ],
                       ),
                     ),
-                    if (provider.topJournalsOpenAlex.isNotEmpty ||
-                        provider.topAuthorsOpenAlex.isNotEmpty ||
-                        provider.topPapersOpenAlex.isNotEmpty) ...[
-                      const SizedBox(height: 20),
-                      MockupCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Key Research Insights',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 15,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            const Text(
-                              'Dashboard summary · OpenAlex',
-                              style: TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 12,
-                              ),
-                            ),
-                            const SizedBox(height: 14),
-                            if (provider.topJournalsOpenAlex.isNotEmpty)
-                              _DashboardInsightRow(
-                                label: 'Top Journal',
-                                value: provider.topJournalsOpenAlex.first.name,
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => JournalDetailScreen(
-                                      journal: provider.topJournalsOpenAlex.first,
-                                      provider: provider,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            if (provider.topAuthorsOpenAlex.isNotEmpty)
-                              _DashboardInsightRow(
-                                label: 'Top Author',
-                                value: provider.topAuthorsOpenAlex.first.name,
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => AuthorDetailScreen(
-                                      author: provider.topAuthorsOpenAlex.first,
-                                      provider: provider,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            if (provider.topPapersOpenAlex.isNotEmpty)
-                              _DashboardInsightRow(
-                                label: 'Most Influential Paper',
-                                value: provider.topPapersOpenAlex.first.title,
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => DetailScreen(
-                                      publication: provider.topPapersOpenAlex.first,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ],
+                    _KeyResearchInsightsSection(provider: provider),
                     const SizedBox(height: 28),
                     const Text(
                       'Research Domains Map',
@@ -457,6 +389,91 @@ class _OverviewBody extends StatelessWidget {
                   ],
                 ),
               ),
+    );
+  }
+}
+
+class _KeyResearchInsightsSection extends StatelessWidget {
+  final PublicationProvider provider;
+
+  const _KeyResearchInsightsSection({required this.provider});
+
+  @override
+  Widget build(BuildContext context) {
+    if (provider.topJournalsOpenAlex.isEmpty &&
+        provider.topAuthorsOpenAlex.isEmpty &&
+        provider.topPapersOpenAlex.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      children: [
+        const SizedBox(height: 20),
+        MockupCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Key Research Insights',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Dashboard summary · OpenAlex',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 14),
+              if (provider.topJournalsOpenAlex.isNotEmpty)
+                _DashboardInsightRow(
+                  label: 'Top Journal',
+                  value: provider.topJournalsOpenAlex.first.name,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => JournalDetailScreen(
+                        journal: provider.topJournalsOpenAlex.first,
+                        provider: provider,
+                      ),
+                    ),
+                  ),
+                ),
+              if (provider.topAuthorsOpenAlex.isNotEmpty)
+                _DashboardInsightRow(
+                  label: 'Top Author',
+                  value: provider.topAuthorsOpenAlex.first.name,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AuthorDetailScreen(
+                        author: provider.topAuthorsOpenAlex.first,
+                        provider: provider,
+                      ),
+                    ),
+                  ),
+                ),
+              if (provider.topPapersOpenAlex.isNotEmpty)
+                _DashboardInsightRow(
+                  label: 'Most Influential Paper',
+                  value: provider.topPapersOpenAlex.first.title,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => DetailScreen(
+                        publication: provider.topPapersOpenAlex.first,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
