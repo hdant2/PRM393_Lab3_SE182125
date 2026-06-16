@@ -1,154 +1,65 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../model/publication.dart';
+import '../models/openalex_ranked_entity.dart';
 import '../providers/publication_provider.dart';
+import '../utils/count_format.dart';
 import 'author_detail_screen.dart';
 
-/// Màn hình hiển thị các tác giả đóng góp nhiều bài báo nhất
+/// 4.6 Top Contributing Authors
 class TopAuthorsScreen extends StatelessWidget {
   const TopAuthorsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<PublicationProvider>();
-
-    final topAuthors = _getTopAuthors(
-      provider.publications,
-    );
-
-    final topic =
-      provider.currentTopic;
+    final topAuthors = provider.rankedAuthors;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Top Contributing Authors'),
+        title: const Text('Top Contributing Authors (OpenAlex)'),
       ),
       body: topAuthors.isEmpty
-    ? const Center(
-        child: Text(
-          'Please search a topic first.',
-        ),
-      )
-    : Column(
-        children: [
-
-          // =====================================================
-          // CURRENT TOPIC
-          // =====================================================
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Card(
-              color: Colors.orange.shade50,
-              child: ListTile(
-                leading: const Icon(
-                  Icons.topic,
-                  color: Colors.orange,
-                ),
-                title: Text(
-                  'Topic: $topic',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                subtitle: Text(
-                  '${topAuthors.length} authors displayed',
-                ),
-              ),
-            ),
-          ),
-
-          // =====================================================
-          // AUTHORS LIST
-          // =====================================================
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-              ),
+          ? const Center(child: Text('No author rankings from OpenAlex yet.'))
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
               itemCount: topAuthors.length,
               itemBuilder: (context, index) {
                 final author = topAuthors[index];
-
                 return Card(
-                  margin: const EdgeInsets.only(
-                    bottom: 12,
-                  ),
+                  margin: const EdgeInsets.only(bottom: 12),
                   child: ListTile(
-                    leading: CircleAvatar(
-                      child: Text(
-                        '${index + 1}',
-                      ),
-                    ),
+                    leading: CircleAvatar(child: Text('${index + 1}')),
                     title: Text(
-                      author.key,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      author.name,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     trailing: Text(
-                      '${author.value}\nPapers',
+                      '${formatOpenAlexCount(author.count)}\nworks',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    onTap: () {
-                      final authorPapers =
-                          provider.publications
-                              .where(
-                                (publication) =>
-                                    publication.authors.contains(
-                                  author.key,
-                                ),
-                              )
-                              .toList();
-
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              AuthorDetailScreen(
-                            authorName:
-                                author.key,
-                            publications:
-                                authorPapers,
-                          ),
-                        ),
-                      );
-                    },
+                    onTap: () => _openAuthor(context, provider, author),
                   ),
                 );
               },
             ),
-          ),
-        ],
-      ),
     );
   }
 
-  /// Đếm số bài báo theo từng tác giả
-  List<MapEntry<String, int>> _getTopAuthors(
-    List<Publication> publications,
+  void _openAuthor(
+    BuildContext context,
+    PublicationProvider provider,
+    OpenAlexRankedEntity author,
   ) {
-    final Map<String, int> authorCount = {};
-
-    for (final publication in publications) {
-      for (final author in publication.authors) {
-        if (author == 'Unknown Author') {
-          continue;
-        }
-
-        authorCount[author] =
-            (authorCount[author] ?? 0) + 1;
-      }
-    }
-
-    final sortedAuthors = authorCount.entries.toList()
-      ..sort(
-        (a, b) => b.value.compareTo(a.value),
-      );
-
-    return sortedAuthors.take(10).toList();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AuthorDetailScreen(
+          author: author,
+          provider: provider,
+        ),
+      ),
+    );
   }
 }

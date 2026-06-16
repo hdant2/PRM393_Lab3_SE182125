@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../model/publication.dart';
-
+import '../models/publication.dart';
 import '../screens/detail_screen.dart';
+import '../theme/app_theme.dart';
+import '../utils/count_format.dart';
 
-/// Widget hiển thị thông tin tóm tắt của một bài báo
 class PublicationCard extends StatelessWidget {
-
-  // Publication được truyền từ SearchScreen
   final Publication publication;
 
   const PublicationCard({
@@ -17,94 +15,69 @@ class PublicationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-    return Card(
-
-      // Khoảng cách giữa các card
-      margin: const EdgeInsets.only(
-        bottom: 12,
-      ),
-
-      // Đổ bóng cho card
-      elevation: 3,
-
-      child: ListTile(
-
-        // =====================================================
-        // TITLE
-        // =====================================================
-
-        title: Text(
-          publication.title,
-
-          // Giới hạn tối đa 2 dòng
-          maxLines: 2,
-
-          overflow:
-              TextOverflow.ellipsis,
-
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
+    return Column(
+      children: [
+        InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => DetailScreen(publication: publication),
+              ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        publication.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                          color: AppColors.textPrimary,
+                          height: 1.35,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        publication.journal,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '${publication.year}    ${formatOpenAlexCount(publication.citations)} citations',
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.chevron_right,
+                  size: 18,
+                  color: AppColors.textSecondary,
+                ),
+              ],
+            ),
           ),
         ),
-
-        // =====================================================
-        // PUBLICATION INFORMATION
-        // =====================================================
-
-        subtitle: Padding(
-          padding: const EdgeInsets.only(
-            top: 8,
-          ),
-
-          child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
-
-            children: [
-
-              // Publication Year
-              Text(
-                'Year: ${publication.year}',
-              ),
-
-              // Citation Count
-              Text(
-                'Citations: ${publication.citations}',
-              ),
-
-              // Journal Name
-              Text(
-                'Journal: ${publication.journal}',
-              ),
-            ],
-          ),
-        ),
-
-        // =====================================================
-        // DETAIL ICON
-        // =====================================================
-
-        trailing: const Icon(
-          Icons.arrow_forward_ios,
-          size: 16,
-        ),
-
-        // =====================================================
-        // NAVIGATION TO DETAIL SCREEN
-        // =====================================================
-
-        onTap: () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => DetailScreen(
-        publication: publication,
-      ),
-    ),
-  );
-},
-      ),
+        const Divider(height: 1, color: AppColors.border),
+      ],
     );
   }
 }

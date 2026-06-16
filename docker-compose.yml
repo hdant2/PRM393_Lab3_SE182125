@@ -1,0 +1,14 @@
+services:
+  android-emulator:
+    image: budtmo/docker-android:emulator_11.0
+    privileged: true
+    ports:
+      - "6080:6080"   # noVNC — xem màn hình emulator
+      - "5554:5554"
+      - "5555:5555"   # ADB
+    environment:
+      EMULATOR_DEVICE: Samsung Galaxy S10
+      WEB_VNC: "true"
+    devices:
+      - /dev/kvm:/dev/kvm
+    restart: unless-stopped

@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 
-class DashboardCard extends StatelessWidget {
-  // =====================================================
-  // CARD DATA
-  // =====================================================
+import '../theme/app_theme.dart';
 
+class DashboardCard extends StatelessWidget {
   final String title;
   final String value;
   final IconData icon;
-  final Color color;
   final VoidCallback? onTap;
 
   const DashboardCard({
@@ -16,73 +13,67 @@ class DashboardCard extends StatelessWidget {
     required this.title,
     required this.value,
     required this.icon,
-    required this.color,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      // =====================================================
-      // CLICK EVENT
-      // =====================================================
-      onTap: onTap,
-
-      borderRadius: BorderRadius.circular(16),
-
-      child: Card(
-        elevation: 4,
-
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: onTap != null ? AppColors.textSecondary : AppColors.border,
+            ),
+          ),
+          child: Stack(
             children: [
-              // =====================================================
-              // ICON
-              // =====================================================
-              Icon(icon, color: color, size: 38),
-
-              const SizedBox(height: 10),
-
-              // =====================================================
-              // TITLE
-              // =====================================================
-              Text(
-                title,
-
-                textAlign: TextAlign.center,
-
-                maxLines: 2,
-
-                overflow: TextOverflow.ellipsis,
-
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+              Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icon, color: AppColors.textPrimary, size: 28),
+                    const Spacer(),
+                    Text(
+                      title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      value,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-
-              const SizedBox(height: 6),
-
-              // =====================================================
-              // VALUE
-              // =====================================================
-              Text(
-                value,
-
-                textAlign: TextAlign.center,
-
-                maxLines: 2,
-
-                overflow: TextOverflow.ellipsis,
-
-                style: const TextStyle(fontSize: 14),
-              ),
+              if (onTap != null)
+                const Positioned(
+                  top: 10,
+                  right: 10,
+                  child: Icon(
+                    Icons.chevron_right,
+                    color: AppColors.textSecondary,
+                    size: 18,
+                  ),
+                ),
             ],
           ),
         ),
