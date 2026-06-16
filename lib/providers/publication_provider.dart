@@ -33,10 +33,14 @@ enum AnalysisScope { global, topic }
 
 /// ChangeNotifier: khi data đổi → notifyListeners() → UI rebuild
 class PublicationProvider extends ChangeNotifier {
-  PublicationProvider({required OpenAlexConfig config})
-      : _config = config,
-        _openAlexService = OpenAlexService(config),
-        _recentSearchesService = RecentSearchesService();
+  PublicationProvider({
+    required OpenAlexConfig config,
+    OpenAlexService? openAlexService,
+    RecentSearchesService? recentSearchesService,
+  })  : _config = config,
+        _openAlexService = openAlexService ?? OpenAlexService(config),
+        _recentSearchesService =
+            recentSearchesService ?? RecentSearchesService();
 
   final OpenAlexConfig _config;
   final OpenAlexService _openAlexService;

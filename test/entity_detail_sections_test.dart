@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lab2/models/publication.dart';
+import 'package:lab2/models/publication_author.dart';
 import 'package:lab2/models/research_insight.dart';
 import 'package:lab2/widgets/entity_detail_sections.dart';
 
@@ -65,5 +67,79 @@ void main() {
     expect(find.text('Network error'), findsOneWidget);
     await tester.tap(find.text('Retry'));
     expect(retried, isTrue);
+  });
+
+  testWidgets('EntityTrendSection shows empty message', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: EntityTrendSection(
+            title: 'Trend',
+            subtitle: 'Publications by year',
+            trend: {},
+            emptyMessage: 'No trend yet',
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('No trend yet'), findsOneWidget);
+  });
+
+  testWidgets('EntityTrendSection renders chart when data exists', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            height: 500,
+            child: EntityTrendSection(
+              title: 'Trend',
+              subtitle: 'Publications by year',
+              trend: {2022: 10, 2023: 20},
+              emptyMessage: 'No trend yet',
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('No trend yet'), findsNothing);
+    expect(find.text('Trend'), findsOneWidget);
+  });
+
+  testWidgets('EntityPapersSection shows papers and load more', (tester) async {
+    var loadedMore = false;
+    final paper = Publication(
+      id: 'W1',
+      title: 'Sample paper',
+      year: 2024,
+      citations: 12,
+      journal: 'Nature',
+      doi: '',
+      authorEntries: const [PublicationAuthor(id: 'A1', name: 'Alice')],
+      abstractText: '',
+      concepts: const ['AI'],
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: EntityPapersSection(
+            title: 'Papers',
+            subtitle: 'Most cited',
+            papers: [paper],
+            totalCount: 50,
+            isLoadingMore: false,
+            hasMore: true,
+            onLoadMore: () => loadedMore = true,
+            emptyMessage: 'No papers',
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Sample paper'), findsOneWidget);
+    await tester.tap(find.text('Load more'));
+    expect(loadedMore, isTrue);
   });
 }

@@ -21,5 +21,28 @@ void main() {
 
       expect(trend, {2022: 10});
     });
+
+    test('parseGroupByNamedCounts sorts and limits results', () {
+      final ranked = OpenAlexService.parseGroupByNamedCounts(
+        {
+          'group_by': [
+            {
+              'key': 'https://openalex.org/J1',
+              'key_display_name': 'Small',
+              'count': 2,
+            },
+            {
+              'key': 'https://openalex.org/J2',
+              'key_display_name': 'Large',
+              'count': 20,
+            },
+          ],
+        },
+        limit: 1,
+      );
+
+      expect(ranked, hasLength(1));
+      expect(ranked.first.name, 'Large');
+    });
   });
 }

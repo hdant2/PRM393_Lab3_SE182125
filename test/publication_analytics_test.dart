@@ -63,6 +63,12 @@ void main() {
         PublicationAnalytics.topResearchAreas(sample).first.key,
         'Artificial intelligence',
       );
+      expect(PublicationAnalytics.averageCitation(sample), closeTo(116.67, 0.01));
+      expect(PublicationAnalytics.mostActiveYear(sample), '2020');
+      expect(PublicationAnalytics.citationsByYear(sample)[2020], 300);
+      expect(PublicationAnalytics.averageCitationsByYear(sample)[2020], 150);
+      expect(PublicationAnalytics.papersForYear(sample, 2020), hasLength(2));
+      expect(PublicationAnalytics.topPapers(sample).first.title, 'Paper C');
     });
   });
 }
