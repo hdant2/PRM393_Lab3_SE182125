@@ -30,7 +30,7 @@ class TopPapersScreen extends StatelessWidget {
 
     final provider = context.watch<PublicationProvider>();
 
-    final topPapers = provider.topPapersOpenAlex;
+    final topPapers = provider.dashboardTopPapersOpenAlex;
 
 
 

@@ -52,7 +52,7 @@ class CitationLeadersScreen extends StatelessWidget {
 class _PapersTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final papers = context.watch<PublicationProvider>().topPapersOpenAlex;
+    final papers = context.watch<PublicationProvider>().dashboardTopPapersOpenAlex;
 
     if (papers.isEmpty) {
       return const Center(child: Text('No papers from OpenAlex'));
@@ -88,7 +88,7 @@ class _AuthorsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<PublicationProvider>();
-    final authors = provider.rankedAuthors;
+    final authors = provider.dashboardRankedAuthors;
 
     if (authors.isEmpty) {
       return const Center(child: Text('No authors from OpenAlex'));
@@ -137,7 +137,7 @@ class _JournalsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<PublicationProvider>();
-    final journals = provider.rankedJournals;
+    final journals = provider.dashboardRankedJournals;
 
     if (journals.isEmpty) {
       return const Center(child: Text('No journals from OpenAlex'));

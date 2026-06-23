@@ -18,6 +18,23 @@ class AppColors {
   static const textTertiary = Color(0xFF999999);
   static const badge = Color(0xFF111111);
   static const error = Color(0xFFB00020);
+
+  /// Chart accent — SCIENTIA-style orange series (charts only, not global UI chrome)
+  static const chartPrimary = Color(0xFFFF6B00);
+  static const chartPrimaryLight = Color(0xFFFFE8D6);
+  static const chartSecondary = Color(0xFF2C2C2C);
+  static const chartTrack = surfaceMuted;
+
+  static const chartDonutPalette = [
+    chartPrimary,
+    Color(0xFF3D3D3D),
+    Color(0xFF8A8A8A),
+    Color(0xFFB8B8B8),
+    Color(0xFFD4D4D4),
+    Color(0xFFE8E8E8),
+    Color(0xFF5C5C5C),
+    Color(0xFF707070),
+  ];
 }
 
 /// Theme sáng, Material 3 — navigation bar, input, card bo góc 16

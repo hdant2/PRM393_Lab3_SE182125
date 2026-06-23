@@ -206,7 +206,7 @@ class _AboutScreenState extends State<AboutScreen> {
                 const _AboutRow(label: 'Data Source', value: 'OpenAlex API'),
                 _AboutRow(
                   label: 'Coverage',
-                  value: '2015–${DateTime.now().year}',
+                  value: '2000–${DateTime.now().year}',
                 ),
                 _AboutRow(
                   label: 'Total Records',

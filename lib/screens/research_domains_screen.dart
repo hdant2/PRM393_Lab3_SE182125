@@ -22,7 +22,7 @@ class ResearchDomainsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<PublicationProvider>();
-    final domains = provider.trendingAreas;
+    final domains = provider.dashboardTrendingAreas;
 
     return Scaffold(
       appBar: AppBar(

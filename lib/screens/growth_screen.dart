@@ -45,11 +45,11 @@ class _GrowthScreenState extends State<GrowthScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<PublicationProvider>();
-    final trend = _filterTrend(provider.yearlyTrendFromOpenAlex);
+    final trend = _filterTrend(provider.dashboardYearlyTrendFromOpenAlex);
     final insight = ResearchInsights.analyzeTrend(volumeByYear: trend);
-    final domains = provider.growingTopicsOpenAlex.isNotEmpty
-        ? provider.growingTopicsOpenAlex
-        : provider.trendingAreas
+    final domains = provider.dashboardGrowingTopicsOpenAlex.isNotEmpty
+        ? provider.dashboardGrowingTopicsOpenAlex
+        : provider.dashboardTrendingAreas
             .map(
               (d) => TopicGrowthInsight(
                 id: d.id,
@@ -94,7 +94,10 @@ class _GrowthScreenState extends State<GrowthScreen> {
             padding: const EdgeInsets.fromLTRB(8, 16, 16, 8),
             child: trend.isEmpty
                 ? const Text('No trend data')
-                : TrendChart(yearlyData: trend),
+                : TrendChart(
+                    yearlyData: trend,
+                    overlayYearlyData: provider.dashboardCitationsByYearOpenAlex,
+                  ),
           ),
           const SizedBox(height: 16),
           Row(
@@ -169,7 +172,7 @@ class _GrowthScreenState extends State<GrowthScreen> {
                       ...domains.take(5).map((domain) {
                         final width = (domain.growthPercent.abs() / 320)
                             .clamp(0.08, 1.0);
-                        final entity = provider.rankedConceptById(domain.id) ??
+                        final entity = provider.dashboardRankedConceptById(domain.id) ??
                             OpenAlexRankedEntity(
                               id: domain.id,
                               name: domain.name,
@@ -205,7 +208,7 @@ class _GrowthScreenState extends State<GrowthScreen> {
                                       child: Container(
                                         height: 8,
                                         decoration: BoxDecoration(
-                                          color: AppColors.textPrimary,
+                                          color: AppColors.chartPrimary,
                                           borderRadius:
                                               BorderRadius.circular(2),
                                         ),

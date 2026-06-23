@@ -13,6 +13,7 @@ class KeywordBarChart extends StatelessWidget {
   final String valueLabel;
   final List<MapEntry<String, int>> items;
   final void Function(String name)? onItemTap;
+  final bool showFooter;
 
   const KeywordBarChart({
     super.key,
@@ -20,6 +21,7 @@ class KeywordBarChart extends StatelessWidget {
     required this.items,
     this.valueLabel = 'publications',
     this.onItemTap,
+    this.showFooter = true,
   });
 
   @override
@@ -28,21 +30,25 @@ class KeywordBarChart extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final top = items.take(6).toList();
-    final maxValue = top.map((e) => e.value).reduce((a, b) => a > b ? a : b).toDouble();
+    final maxValue = items
+        .map((e) => e.value)
+        .reduce((a, b) => a > b ? a : b)
+        .toDouble();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
+        if (title.isNotEmpty) ...[
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
           ),
-        ),
-        const SizedBox(height: 14),
-        ...top.map((entry) {
+          const SizedBox(height: 14),
+        ],
+        ...items.map((entry) {
           final ratio = entry.value / maxValue;
           return Padding(
             padding: const EdgeInsets.only(bottom: 10),
@@ -74,7 +80,7 @@ class KeywordBarChart extends StatelessWidget {
                             Container(
                               height: 22,
                               decoration: BoxDecoration(
-                                color: AppColors.surfaceMuted,
+                                color: AppColors.chartTrack,
                                 borderRadius: BorderRadius.circular(4),
                               ),
                             ),
@@ -82,9 +88,11 @@ class KeywordBarChart extends StatelessWidget {
                               widthFactor: ratio.clamp(0.06, 1.0),
                               child: Container(
                                 height: 22,
-                                decoration: BoxDecoration(
-                                  color: AppColors.textPrimary,
-                                  borderRadius: BorderRadius.circular(4),
+                                decoration: const BoxDecoration(
+                                  color: AppColors.chartPrimary,
+                                  borderRadius: BorderRadius.horizontal(
+                                    right: Radius.circular(4),
+                                  ),
                                 ),
                               ),
                             ),
@@ -99,6 +107,14 @@ class KeywordBarChart extends StatelessWidget {
                           fontSize: 12,
                         ),
                       ),
+                      if (onItemTap != null) ...[
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.chevron_right,
+                          size: 16,
+                          color: AppColors.textSecondary,
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -106,14 +122,16 @@ class KeywordBarChart extends StatelessWidget {
             ),
           );
         }),
-        const SizedBox(height: 4),
-        Text(
-          'Bar length = $valueLabel · OpenAlex concepts',
-          style: const TextStyle(
-            color: AppColors.textTertiary,
-            fontSize: 10,
+        if (showFooter) ...[
+          const SizedBox(height: 4),
+          Text(
+            'Bar length = $valueLabel · OpenAlex',
+            style: const TextStyle(
+              color: AppColors.textTertiary,
+              fontSize: 10,
+            ),
           ),
-        ),
+        ],
       ],
     );
   }

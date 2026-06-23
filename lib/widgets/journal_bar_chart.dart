@@ -9,11 +9,13 @@ import '../utils/count_format.dart';
 class JournalBarChart extends StatelessWidget {
   final List<MapEntry<String, int>> journals;
   final void Function(String journalName)? onJournalTap;
+  final bool showHeader;
 
   const JournalBarChart({
     super.key,
     required this.journals,
     this.onJournalTap,
+    this.showHeader = true,
   });
 
   @override
@@ -22,22 +24,26 @@ class JournalBarChart extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final top = journals.take(5).toList();
-    final maxValue = top.first.value.toDouble();
+    final maxValue = journals
+        .map((e) => e.value)
+        .reduce((a, b) => a > b ? a : b)
+        .toDouble();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Top Journals',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+        if (showHeader) ...[
+          const Text(
+            'Top Journals',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
           ),
-        ),
-        const SizedBox(height: 16),
-        ...top.map((entry) {
+          const SizedBox(height: 16),
+        ],
+        ...journals.map((entry) {
           final ratio = entry.value / maxValue;
           return Padding(
             padding: const EdgeInsets.only(bottom: 10),
@@ -71,7 +77,7 @@ class JournalBarChart extends StatelessWidget {
                             Container(
                               height: 24,
                               decoration: BoxDecoration(
-                                color: AppColors.surfaceMuted,
+                                color: AppColors.chartTrack,
                                 borderRadius: BorderRadius.circular(6),
                               ),
                             ),
@@ -79,9 +85,11 @@ class JournalBarChart extends StatelessWidget {
                               widthFactor: ratio.clamp(0.08, 1.0),
                               child: Container(
                                 height: 24,
-                                decoration: BoxDecoration(
-                                  color: AppColors.textPrimary,
-                                  borderRadius: BorderRadius.circular(6),
+                                decoration: const BoxDecoration(
+                                  color: AppColors.chartPrimary,
+                                  borderRadius: BorderRadius.horizontal(
+                                    right: Radius.circular(6),
+                                  ),
                                 ),
                               ),
                             ),

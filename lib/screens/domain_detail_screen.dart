@@ -393,19 +393,15 @@ class _DomainDetailScreenState extends State<DomainDetailScreen> {
 /// Donut chart phân bổ domain — dùng ở ResearchDomainsScreen.
 class DomainDonutChart extends StatelessWidget {
   final List<OpenAlexRankedEntity> domains;
+  final void Function(OpenAlexRankedEntity domain)? onDomainTap;
 
-  const DomainDonutChart({super.key, required this.domains});
+  const DomainDonutChart({
+    super.key,
+    required this.domains,
+    this.onDomainTap,
+  });
 
-  static const _chartColors = [
-    AppColors.textPrimary,
-    AppColors.textSecondary,
-    AppColors.textTertiary,
-    Color(0xFFCCCCCC),
-    Color(0xFFDDDDDD),
-    Color(0xFFEEEEEE),
-    Color(0xFFB0B0B0),
-    Color(0xFF909090),
-  ];
+  static const _chartColors = AppColors.chartDonutPalette;
 
   /// PieChart (fl_chart) + legend 5 domain đầu + % share.
   @override
@@ -452,6 +448,9 @@ class DomainDonutChart extends StatelessWidget {
                         percent: total > 0
                             ? legendItems[i].count / total * 100
                             : 0,
+                        onTap: onDomainTap == null
+                            ? null
+                            : () => onDomainTap!(legendItems[i]),
                       ),
                   ],
                 ),
@@ -478,44 +477,61 @@ class _LegendRow extends StatelessWidget {
   final String name;
   final int count;
   final double percent;
+  final VoidCallback? onTap;
 
   const _LegendRow({
     required this.color,
     required this.name,
     required this.count,
     required this.percent,
+    this.onTap,
   });
 
   /// Hiển thị chấm màu + tên domain + count + %.
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 8, top: 2),
+          child: Row(
+            children: [
+              Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 11),
+                ),
+              ),
+              Text(
+                '${formatOpenAlexCount(count)} · ${percent.toStringAsFixed(1)}%',
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              if (onTap != null) ...[
+                const SizedBox(width: 2),
+                const Icon(
+                  Icons.chevron_right,
+                  size: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ],
+            ],
           ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 11),
-            ),
-          ),
-          Text(
-            '${formatOpenAlexCount(count)} · ${percent.toStringAsFixed(1)}%',
-            style: const TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -100,9 +100,11 @@ void main() {
     test('fetchPublicationTrendByYear parses group_by payload', () async {
       final client = MockClient((request) async {
         expect(request.url.queryParameters['group_by'], 'publication_year');
+        expect(request.url.queryParameters['filter'], contains('2000'));
         return http.Response(
           jsonEncode({
             'group_by': [
+              {'key': '1998', 'count': 5},
               {'key': '2022', 'count': 15},
               {'key': '2023', 'count': 25},
             ],
@@ -114,8 +116,23 @@ void main() {
       final service = OpenAlexService(OpenAlexConfig(), httpClient: client);
       final trend = await service.fetchPublicationTrendByYear(search: 'ai');
 
+      expect(trend.containsKey(1998), isFalse);
       expect(trend[2022], 15);
       expect(trend[2023], 25);
+    });
+
+    test('fetchPublicationTrendByYear keeps year filter for global dashboard', () async {
+      final client = MockClient((request) async {
+        expect(request.url.queryParameters['filter'], contains('2000'));
+        expect(request.url.queryParameters['filter'], contains('cited_by_count'));
+        return http.Response(
+          jsonEncode({'group_by': []}),
+          200,
+        );
+      });
+
+      final service = OpenAlexService(OpenAlexConfig(), httpClient: client);
+      await service.fetchPublicationTrendByYear(globalInfluential: true);
     });
 
     test('fetchWorksGroupedCounts parses ranked entities', () async {
@@ -169,6 +186,57 @@ void main() {
       final average = await service.fetchAverageCitation(search: 'ai');
 
       expect(average, 20);
+    });
+
+    test('fetchOpenAccessBreakdown counts via is_oa filters', () async {
+      final client = MockClient((request) async {
+        final filter = request.url.queryParameters['filter'] ?? '';
+        if (filter.contains('open_access.is_oa:true')) {
+          return http.Response(
+            jsonEncode({'meta': {'count': 420000}, 'results': []}),
+            200,
+          );
+        }
+        if (filter.contains('open_access.is_oa:false')) {
+          return http.Response(
+            jsonEncode({'meta': {'count': 502700}, 'results': []}),
+            200,
+          );
+        }
+        fail('Unexpected filter: $filter');
+      });
+
+      final service = OpenAlexService(OpenAlexConfig(), httpClient: client);
+      final breakdown = await service.fetchOpenAccessBreakdown(
+        globalInfluential: true,
+      );
+
+      expect(breakdown.openCount, 420000);
+      expect(breakdown.closedCount, 502700);
+    });
+
+    test('fetchPublicationTrendByMonth counts each month in year', () async {
+      final client = MockClient((request) async {
+        final filter = request.url.queryParameters['filter'] ?? '';
+        expect(filter, contains('from_publication_date'));
+        final monthMatch = RegExp(
+          r'from_publication_date:\d{4}-(\d{2})',
+        ).firstMatch(filter);
+        final month = int.parse(monthMatch!.group(1)!);
+        return http.Response(
+          jsonEncode({'meta': {'count': month * 10}, 'results': []}),
+          200,
+        );
+      });
+
+      final service = OpenAlexService(OpenAlexConfig(), httpClient: client);
+      final trend = await service.fetchPublicationTrendByMonth(
+        year: DateTime.now().year,
+        globalInfluential: true,
+      );
+
+      expect(trend.isNotEmpty, isTrue);
+      expect(trend[1], 10);
     });
 
     test('fetchTopPapers returns parsed publications', () async {
@@ -319,9 +387,9 @@ void main() {
       expect(related, isEmpty);
     });
 
-    test('fetchConceptsForYear uses concept group_by', () async {
+    test('fetchConceptsForYear uses topic group_by', () async {
       final client = MockClient((request) async {
-        expect(request.url.queryParameters['group_by'], OpenAlexService.groupByConcept);
+        expect(request.url.queryParameters['group_by'], OpenAlexService.groupByTopic);
         return http.Response(
           jsonEncode({
             'group_by': [
@@ -370,13 +438,24 @@ void main() {
 
     test('fetchCitationMetricsByYear aggregates per-year citations', () async {
       final client = MockClient((request) async {
+        if (request.url.queryParameters['group_by'] == 'publication_year') {
+          return http.Response(
+            jsonEncode({
+              'group_by': [
+                {'key': '2024', 'count': 3},
+              ],
+            }),
+            200,
+          );
+        }
         if (request.url.queryParameters['select'] == 'cited_by_count') {
           return http.Response(
             jsonEncode({
-              'meta': {'count': 2},
+              'meta': {'count': 3},
               'results': [
                 {'cited_by_count': 10},
                 {'cited_by_count': 30},
+                {'cited_by_count': 20},
               ],
             }),
             200,
@@ -388,8 +467,43 @@ void main() {
       final service = OpenAlexService(OpenAlexConfig(), httpClient: client);
       final metrics = await service.fetchCitationMetricsByYear(search: 'ai');
 
-      expect(metrics.totals.values, isNotEmpty);
-      expect(metrics.averages.values, isNotEmpty);
+      expect(metrics.totals[2024], 60);
+      expect(metrics.averages[2024], 20);
+    });
+
+    test('fetchCitationMetricsByYear extrapolates when sample is smaller than volume',
+        () async {
+      final client = MockClient((request) async {
+        if (request.url.queryParameters['group_by'] == 'publication_year') {
+          return http.Response(
+            jsonEncode({
+              'group_by': [
+                {'key': '2023', 'count': 10},
+              ],
+            }),
+            200,
+          );
+        }
+        if (request.url.queryParameters['select'] == 'cited_by_count') {
+          return http.Response(
+            jsonEncode({
+              'meta': {'count': 10},
+              'results': [
+                {'cited_by_count': 5},
+                {'cited_by_count': 15},
+              ],
+            }),
+            200,
+          );
+        }
+        return http.Response(jsonEncode({'meta': {'count': 0}, 'results': []}), 200);
+      });
+
+      final service = OpenAlexService(OpenAlexConfig(), httpClient: client);
+      final metrics = await service.fetchCitationMetricsByYear(search: 'ml');
+
+      expect(metrics.totals[2023], 100);
+      expect(metrics.averages[2023], 10);
     });
 
     test('retries transient HTTP 429 then succeeds', () async {

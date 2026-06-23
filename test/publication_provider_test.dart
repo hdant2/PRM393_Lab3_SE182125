@@ -60,7 +60,8 @@ void main() {
 
       expect(snapshot, isNotNull);
       expect(snapshot!.topic, 'ras');
-      expect(snapshot.totalPublications, 500);
+      expect(snapshot.totalPublications, 30);
+      expect(snapshot.growthPercent, 100);
     });
 
     test('landscapePulse uses dashboard totals', () {
@@ -153,8 +154,26 @@ void main() {
       expect(provider.totalOnOpenAlex, 100);
       expect(provider.yearlyTrendFromOpenAlex, isNotEmpty);
       expect(provider.topPapersOpenAlex, isNotEmpty);
+      expect(provider.dashboardTotalOnOpenAlex, 100);
+      expect(provider.dashboardYearlyTrendFromOpenAlex, isNotEmpty);
+      expect(provider.hasDashboardData, isTrue);
       expect(provider.isDashboardLoading, isFalse);
       expect(provider.isTrendLoading, isFalse);
+    });
+
+    test('topic search does not overwrite dashboard snapshot', () async {
+      await provider.loadDefaultDashboard();
+      final dashboardTotal = provider.dashboardTotalOnOpenAlex;
+      final dashboardTrend = Map<int, int>.from(
+        provider.dashboardYearlyTrendFromOpenAlex,
+      );
+
+      await provider.searchPublications('machine learning');
+
+      expect(provider.scope, AnalysisScope.topic);
+      expect(provider.dashboardTotalOnOpenAlex, dashboardTotal);
+      expect(provider.dashboardYearlyTrendFromOpenAlex, dashboardTrend);
+      expect(provider.hasDashboardData, isTrue);
     });
 
     test('searchPublications loads first page and background metrics', () async {

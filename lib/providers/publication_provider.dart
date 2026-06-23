@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/openalex_impact_profile.dart';
 import '../models/openalex_ranked_entity.dart';
 import '../models/openalex_works_result.dart';
 import '../models/publication.dart';
@@ -56,11 +57,21 @@ class PublicationProvider extends ChangeNotifier {
   List<Publication> publications = []; // danh sách chính (search / global list)
   List<Publication> topPapersOpenAlex = []; // Citation Leaders (top 10 cited)
   Map<int, int> yearlyTrendFromOpenAlex = {}; // năm → số bài
+  Map<int, int> monthlyTrendFromOpenAlex = {}; // tháng 1–12 trong năm hiện tại
   Map<int, int> citationsByYearOpenAlex = {};
   Map<int, int> avgCitationsByYearOpenAlex = {};
   List<OpenAlexRankedEntity> topAuthorsOpenAlex = [];
   List<OpenAlexRankedEntity> topJournalsOpenAlex = [];
   List<OpenAlexRankedEntity> topResearchAreasOpenAlex = [];
+  List<OpenAlexRankedEntity> topInstitutionsOpenAlex = [];
+  List<OpenAlexRankedEntity> worksByTypeOpenAlex = [];
+  List<OpenAlexRankedEntity> topAuthorsByCitationsOpenAlex = [];
+  List<OpenAlexRankedEntity> topInstitutionsByCitationsOpenAlex = [];
+  List<OpenAlexRankedEntity> topAuthorsByHIndexOpenAlex = [];
+  List<OpenAlexRankedEntity> countriesOpenAlex = [];
+  List<OpenAlexImpactProfile> authorImpactProfilesOpenAlex = [];
+  int openAccessCountOpenAlex = 0;
+  int closedAccessCountOpenAlex = 0;
   List<TopicGrowthInsight> growingTopicsOpenAlex = [];
   double averageCitationOpenAlex = 0;
   int totalOnOpenAlex = 0; // meta.count từ API (~201K khi search "ras")
@@ -78,12 +89,38 @@ class PublicationProvider extends ChangeNotifier {
   /// Tăng mỗi lần user search — request cũ bị bỏ qua nếu generation không khớp
   int _searchGeneration = 0;
 
+  // Snapshot dashboard global — Overview đọc từ đây, không bị search Explore ghi đè
+  int _dashboardTotalOnOpenAlex = 0;
+  Map<int, int> _dashboardYearlyTrendFromOpenAlex = {};
+  Map<int, int> _dashboardMonthlyTrendFromOpenAlex = {};
+  Map<int, int> _dashboardCitationsByYearOpenAlex = {};
+  Map<int, int> _dashboardAvgCitationsByYearOpenAlex = {};
+  List<OpenAlexRankedEntity> _dashboardTopAuthorsOpenAlex = [];
+  List<OpenAlexRankedEntity> _dashboardTopJournalsOpenAlex = [];
+  List<OpenAlexRankedEntity> _dashboardTopResearchAreasOpenAlex = [];
+  List<OpenAlexRankedEntity> _dashboardTopInstitutionsOpenAlex = [];
+  List<OpenAlexRankedEntity> _dashboardWorksByTypeOpenAlex = [];
+  List<OpenAlexRankedEntity> _dashboardTopAuthorsByCitationsOpenAlex = [];
+  List<OpenAlexRankedEntity> _dashboardTopInstitutionsByCitationsOpenAlex = [];
+  List<OpenAlexRankedEntity> _dashboardTopAuthorsByHIndexOpenAlex = [];
+  List<OpenAlexRankedEntity> _dashboardCountriesOpenAlex = [];
+  List<OpenAlexImpactProfile> _dashboardAuthorImpactProfilesOpenAlex = [];
+  int _dashboardOpenAccessCount = 0;
+  int _dashboardClosedAccessCount = 0;
+  List<TopicGrowthInsight> _dashboardGrowingTopicsOpenAlex = [];
+  List<Publication> _dashboardTopPapersOpenAlex = [];
+  double _dashboardAverageCitationOpenAlex = 0;
+
   bool get isLoading =>
       isDashboardLoading || isSearchLoading || isTrendLoading;
   bool get hasData =>
       totalOnOpenAlex > 0 ||
       yearlyTrendFromOpenAlex.isNotEmpty ||
       topPapersOpenAlex.isNotEmpty;
+  bool get hasDashboardData =>
+      _dashboardTotalOnOpenAlex > 0 ||
+      _dashboardYearlyTrendFromOpenAlex.isNotEmpty ||
+      _dashboardTopPapersOpenAlex.isNotEmpty;
   bool get isGlobalScope => scope == AnalysisScope.global;
   bool get hasRealTrend => yearlyTrendFromOpenAlex.isNotEmpty;
 
@@ -103,6 +140,54 @@ class PublicationProvider extends ChangeNotifier {
         totalPublications: totalOnOpenAlex,
         volumeByYear: yearlyTrendFromOpenAlex,
         averageCitations: averageCitationOpenAlex,
+      );
+
+  int get dashboardTotalOnOpenAlex => _dashboardTotalOnOpenAlex;
+  Map<int, int> get dashboardYearlyTrendFromOpenAlex =>
+      _dashboardYearlyTrendFromOpenAlex;
+  Map<int, int> get dashboardMonthlyTrendFromOpenAlex =>
+      _dashboardMonthlyTrendFromOpenAlex;
+  Map<int, int> get dashboardCitationsByYearOpenAlex =>
+      _dashboardCitationsByYearOpenAlex;
+  double get dashboardAverageCitationOpenAlex =>
+      _dashboardAverageCitationOpenAlex;
+  List<OpenAlexRankedEntity> get dashboardTrendingAreas =>
+      _dashboardTopResearchAreasOpenAlex;
+  List<TopicGrowthInsight> get dashboardGrowingTopicsOpenAlex =>
+      _dashboardGrowingTopicsOpenAlex;
+  List<OpenAlexRankedEntity> get dashboardRankedAuthors =>
+      _dashboardTopAuthorsOpenAlex;
+  List<OpenAlexRankedEntity> get dashboardRankedJournals =>
+      _dashboardTopJournalsOpenAlex;
+  List<Publication> get dashboardTopPapersOpenAlex =>
+      _dashboardTopPapersOpenAlex;
+  List<OpenAlexRankedEntity> get dashboardTopInstitutions =>
+      _dashboardTopInstitutionsOpenAlex;
+  List<OpenAlexRankedEntity> get dashboardWorksByType =>
+      _dashboardWorksByTypeOpenAlex;
+  List<OpenAlexRankedEntity> get dashboardTopAuthorsByCitations =>
+      _dashboardTopAuthorsByCitationsOpenAlex;
+  List<OpenAlexRankedEntity> get dashboardTopInstitutionsByCitations =>
+      _dashboardTopInstitutionsByCitationsOpenAlex;
+  List<OpenAlexRankedEntity> get dashboardTopAuthorsByHIndex =>
+      _dashboardTopAuthorsByHIndexOpenAlex;
+  List<OpenAlexRankedEntity> get dashboardCountries =>
+      _dashboardCountriesOpenAlex;
+  List<OpenAlexImpactProfile> get dashboardAuthorImpactProfiles =>
+      _dashboardAuthorImpactProfilesOpenAlex;
+  int get dashboardOpenAccessCount => _dashboardOpenAccessCount;
+  int get dashboardClosedAccessCount => _dashboardClosedAccessCount;
+  double get dashboardOpenAccessPercent {
+    final total = _dashboardOpenAccessCount + _dashboardClosedAccessCount;
+    if (total <= 0) return 0;
+    return _dashboardOpenAccessCount / total * 100;
+  }
+
+  LandscapePulse get dashboardLandscapePulse =>
+      ResearchInsights.buildLandscapePulse(
+        totalPublications: _dashboardTotalOnOpenAlex,
+        volumeByYear: _dashboardYearlyTrendFromOpenAlex,
+        averageCitations: _dashboardAverageCitationOpenAlex,
       );
 
   TopicSnapshot? get topicSnapshot {
@@ -146,6 +231,36 @@ class PublicationProvider extends ChangeNotifier {
     return null;
   }
 
+  OpenAlexRankedEntity? dashboardRankedConceptById(String id) {
+    for (final area in _dashboardTopResearchAreasOpenAlex) {
+      if (area.id == id) return area;
+    }
+    for (final topic in _dashboardGrowingTopicsOpenAlex) {
+      if (topic.id == id) {
+        return OpenAlexRankedEntity(
+          id: topic.id,
+          name: topic.name,
+          count: 0,
+        );
+      }
+    }
+    return null;
+  }
+
+  OpenAlexRankedEntity? dashboardRankedAuthorByName(String name) {
+    for (final author in _dashboardTopAuthorsOpenAlex) {
+      if (author.name == name) return author;
+    }
+    return null;
+  }
+
+  OpenAlexRankedEntity? dashboardRankedJournalByName(String name) {
+    for (final journal in _dashboardTopJournalsOpenAlex) {
+      if (journal.name == name) return journal;
+    }
+    return null;
+  }
+
   /// Mở app / "Back to global overview" — load dashboard toàn cục
   Future<void> loadDefaultDashboard() async {
     isDashboardLoading = true;
@@ -165,8 +280,10 @@ class PublicationProvider extends ChangeNotifier {
       notifyListeners();
 
       await _loadAllOpenAlexMetrics(globalInfluential: true);
+      _snapshotDashboardFromActive();
     } catch (e) {
       _clearAllData();
+      _clearDashboardMetrics();
       errorMessage = _mapError(e);
     } finally {
       isDashboardLoading = false;
@@ -504,6 +621,52 @@ class PublicationProvider extends ChangeNotifier {
     );
   }
 
+  Future<OpenAlexWorksResult> loadWorksByInstitutionPage(
+    OpenAlexRankedEntity institution,
+    int page,
+  ) {
+    if (isGlobalScope) {
+      return _openAlexService.fetchWorksByInstitutionIdPage(
+        institutionId: institution.id,
+        page: page,
+        globalInfluential: true,
+      );
+    }
+    return _openAlexService.fetchWorksByInstitutionIdPage(
+      institutionId: institution.id,
+      page: page,
+      search: currentTopic,
+    );
+  }
+
+  Future<Map<int, int>> loadInstitutionTrend(OpenAlexRankedEntity institution) {
+    if (isGlobalScope) {
+      return _openAlexService.fetchInstitutionYearlyTrend(
+        institutionId: institution.id,
+        globalInfluential: true,
+      );
+    }
+    return _openAlexService.fetchInstitutionYearlyTrend(
+      institutionId: institution.id,
+      search: currentTopic,
+    );
+  }
+
+  Future<List<OpenAlexRankedEntity>> loadInstitutionTopAuthors(
+    OpenAlexRankedEntity institution,
+  ) {
+    if (isGlobalScope) {
+      return _openAlexService.fetchInstitutionTopAuthors(
+        institutionId: institution.id,
+        globalInfluential: true,
+      );
+    }
+    return _openAlexService.fetchInstitutionTopAuthors(
+      institutionId: institution.id,
+      search: currentTopic,
+    );
+  }
+
   OpenAlexRankedEntity? rankedConceptById(String id) {
     for (final area in topResearchAreasOpenAlex) {
       if (area.id == id) return area;
@@ -565,15 +728,92 @@ class PublicationProvider extends ChangeNotifier {
     return yearlyTrendFromOpenAlex[year] ?? 0;
   }
 
+  void _snapshotDashboardFromActive() {
+    _dashboardTotalOnOpenAlex = totalOnOpenAlex;
+    _dashboardYearlyTrendFromOpenAlex =
+        Map<int, int>.from(yearlyTrendFromOpenAlex);
+    _dashboardMonthlyTrendFromOpenAlex =
+        Map<int, int>.from(monthlyTrendFromOpenAlex);
+    _dashboardCitationsByYearOpenAlex =
+        Map<int, int>.from(citationsByYearOpenAlex);
+    _dashboardAvgCitationsByYearOpenAlex =
+        Map<int, int>.from(avgCitationsByYearOpenAlex);
+    _dashboardTopAuthorsOpenAlex = List<OpenAlexRankedEntity>.from(
+      topAuthorsOpenAlex,
+    );
+    _dashboardTopJournalsOpenAlex = List<OpenAlexRankedEntity>.from(
+      topJournalsOpenAlex,
+    );
+    _dashboardTopResearchAreasOpenAlex = List<OpenAlexRankedEntity>.from(
+      topResearchAreasOpenAlex,
+    );
+    _dashboardTopInstitutionsOpenAlex = List<OpenAlexRankedEntity>.from(
+      topInstitutionsOpenAlex,
+    );
+    _dashboardWorksByTypeOpenAlex = List<OpenAlexRankedEntity>.from(
+      worksByTypeOpenAlex,
+    );
+    _dashboardTopAuthorsByCitationsOpenAlex =
+        List<OpenAlexRankedEntity>.from(topAuthorsByCitationsOpenAlex);
+    _dashboardTopInstitutionsByCitationsOpenAlex =
+        List<OpenAlexRankedEntity>.from(topInstitutionsByCitationsOpenAlex);
+    _dashboardTopAuthorsByHIndexOpenAlex =
+        List<OpenAlexRankedEntity>.from(topAuthorsByHIndexOpenAlex);
+    _dashboardCountriesOpenAlex =
+        List<OpenAlexRankedEntity>.from(countriesOpenAlex);
+    _dashboardAuthorImpactProfilesOpenAlex =
+        List<OpenAlexImpactProfile>.from(authorImpactProfilesOpenAlex);
+    _dashboardOpenAccessCount = openAccessCountOpenAlex;
+    _dashboardClosedAccessCount = closedAccessCountOpenAlex;
+    _dashboardGrowingTopicsOpenAlex = List<TopicGrowthInsight>.from(
+      growingTopicsOpenAlex,
+    );
+    _dashboardTopPapersOpenAlex = List<Publication>.from(topPapersOpenAlex);
+    _dashboardAverageCitationOpenAlex = averageCitationOpenAlex;
+  }
+
+  void _clearDashboardMetrics() {
+    _dashboardTotalOnOpenAlex = 0;
+    _dashboardYearlyTrendFromOpenAlex = {};
+    _dashboardMonthlyTrendFromOpenAlex = {};
+    _dashboardCitationsByYearOpenAlex = {};
+    _dashboardAvgCitationsByYearOpenAlex = {};
+    _dashboardTopAuthorsOpenAlex = [];
+    _dashboardTopJournalsOpenAlex = [];
+    _dashboardTopResearchAreasOpenAlex = [];
+    _dashboardTopInstitutionsOpenAlex = [];
+    _dashboardWorksByTypeOpenAlex = [];
+    _dashboardTopAuthorsByCitationsOpenAlex = [];
+    _dashboardTopInstitutionsByCitationsOpenAlex = [];
+    _dashboardTopAuthorsByHIndexOpenAlex = [];
+    _dashboardCountriesOpenAlex = [];
+    _dashboardAuthorImpactProfilesOpenAlex = [];
+    _dashboardOpenAccessCount = 0;
+    _dashboardClosedAccessCount = 0;
+    _dashboardGrowingTopicsOpenAlex = [];
+    _dashboardTopPapersOpenAlex = [];
+    _dashboardAverageCitationOpenAlex = 0;
+  }
+
   /// Xóa metrics topic khi search mới — tránh hiện số global cũ.
   void _clearTopicMetrics() {
     topPapersOpenAlex = [];
     yearlyTrendFromOpenAlex = {};
+    monthlyTrendFromOpenAlex = {};
     citationsByYearOpenAlex = {};
     avgCitationsByYearOpenAlex = {};
     topAuthorsOpenAlex = [];
     topJournalsOpenAlex = [];
     topResearchAreasOpenAlex = [];
+    topInstitutionsOpenAlex = [];
+    worksByTypeOpenAlex = [];
+    topAuthorsByCitationsOpenAlex = [];
+    topInstitutionsByCitationsOpenAlex = [];
+    topAuthorsByHIndexOpenAlex = [];
+    countriesOpenAlex = [];
+    authorImpactProfilesOpenAlex = [];
+    openAccessCountOpenAlex = 0;
+    closedAccessCountOpenAlex = 0;
     growingTopicsOpenAlex = [];
     averageCitationOpenAlex = 0;
     totalOnOpenAlex = 0;
@@ -594,7 +834,7 @@ class PublicationProvider extends ChangeNotifier {
         : e.toString().replaceFirst('Exception: ', '');
   }
 
-  /// Gom mọi metrics OpenAlex (gọi song song tuần tự trong hàm này)
+  /// Gom metrics OpenAlex — các request độc lập chạy song song.
   Future<void> _loadAllOpenAlexMetrics({
     String? search,
     bool globalInfluential = false,
@@ -602,41 +842,128 @@ class PublicationProvider extends ChangeNotifier {
     isTrendLoading = true;
     notifyListeners();
 
-    // group_by publication_year → biểu đồ trend
-    yearlyTrendFromOpenAlex = await _tryAggregate(
-      () => _openAlexService.fetchPublicationTrendByYear(
-        search: search,
-        globalInfluential: globalInfluential,
+    final results = await Future.wait([
+      _tryAggregate(
+        () => _openAlexService.fetchPublicationTrendByYear(
+          search: search,
+          globalInfluential: globalInfluential,
+        ),
+        <int, int>{},
       ),
-      {},
+      _tryAggregate(
+        () => _openAlexService.fetchWorksGroupedCounts(
+          groupBy: OpenAlexService.groupByAuthor,
+          search: search,
+          globalInfluential: globalInfluential,
+        ),
+        <OpenAlexRankedEntity>[],
+      ),
+      _tryAggregate(
+        () => _openAlexService.fetchWorksGroupedCounts(
+          groupBy: OpenAlexService.groupByJournal,
+          search: search,
+          globalInfluential: globalInfluential,
+        ),
+        <OpenAlexRankedEntity>[],
+      ),
+      _tryAggregate(
+        () => _openAlexService.fetchWorksGroupedCounts(
+          groupBy: OpenAlexService.groupByConcept,
+          search: search,
+          globalInfluential: globalInfluential,
+          limit: 8,
+        ),
+        <OpenAlexRankedEntity>[],
+      ),
+      _tryAggregate(
+        () => _openAlexService.fetchTopPapers(
+          search: search,
+          globalInfluential: globalInfluential,
+          limit: 10,
+        ),
+        <Publication>[],
+      ),
+      _tryAggregate(
+        () => _openAlexService.fetchAverageCitation(
+          search: search,
+          globalInfluential: globalInfluential,
+        ),
+        0.0,
+      ),
+      _tryAggregate(
+        () => _openAlexService.fetchCitationMetricsByYear(
+          search: search,
+          globalInfluential: globalInfluential,
+        ),
+        (totals: <int, int>{}, averages: <int, int>{}),
+      ),
+      _tryAggregate(
+        () => _openAlexService.fetchWorksGroupedCounts(
+          groupBy: OpenAlexService.groupByInstitution,
+          search: search,
+          globalInfluential: globalInfluential,
+          limit: 5,
+        ),
+        <OpenAlexRankedEntity>[],
+      ),
+      _tryAggregate(
+        () => _openAlexService.fetchWorksGroupedCounts(
+          groupBy: OpenAlexService.groupByType,
+          search: search,
+          globalInfluential: globalInfluential,
+          limit: 6,
+        ),
+        <OpenAlexRankedEntity>[],
+      ),
+      _tryAggregate(
+        () => _openAlexService.fetchOpenAccessBreakdown(
+          search: search,
+          globalInfluential: globalInfluential,
+        ),
+        (openCount: 0, closedCount: 0),
+      ),
+      _tryAggregate(
+        () => _openAlexService.fetchCountryDistribution(
+          search: search,
+          globalInfluential: globalInfluential,
+        ),
+        <OpenAlexRankedEntity>[],
+      ),
+    ]);
+
+    yearlyTrendFromOpenAlex = results[0] as Map<int, int>;
+    topAuthorsOpenAlex = results[1] as List<OpenAlexRankedEntity>;
+    topJournalsOpenAlex = results[2] as List<OpenAlexRankedEntity>;
+    topResearchAreasOpenAlex = results[3] as List<OpenAlexRankedEntity>;
+    topPapersOpenAlex = results[4] as List<Publication>;
+    averageCitationOpenAlex = results[5] as double;
+
+    final citationMetrics = results[6] as ({
+      Map<int, int> totals,
+      Map<int, int> averages,
+    });
+    citationsByYearOpenAlex = citationMetrics.totals;
+    avgCitationsByYearOpenAlex = citationMetrics.averages;
+
+    topInstitutionsOpenAlex = results[7] as List<OpenAlexRankedEntity>;
+    worksByTypeOpenAlex = results[8] as List<OpenAlexRankedEntity>;
+    final openAccess = results[9] as ({int openCount, int closedCount});
+    openAccessCountOpenAlex = openAccess.openCount;
+    closedAccessCountOpenAlex = openAccess.closedCount;
+    countriesOpenAlex = results[10] as List<OpenAlexRankedEntity>;
+
+    await _loadImpactMetrics(
+      search: search,
+      globalInfluential: globalInfluential,
     );
 
-    topAuthorsOpenAlex = await _tryAggregate(
-      () => _openAlexService.fetchWorksGroupedCounts(
-        groupBy: OpenAlexService.groupByAuthor,
+    monthlyTrendFromOpenAlex = await _tryAggregate(
+      () => _openAlexService.fetchPublicationTrendByMonth(
+        year: DateTime.now().year,
         search: search,
         globalInfluential: globalInfluential,
       ),
-      [],
-    );
-
-    topJournalsOpenAlex = await _tryAggregate(
-      () => _openAlexService.fetchWorksGroupedCounts(
-        groupBy: OpenAlexService.groupByJournal,
-        search: search,
-        globalInfluential: globalInfluential,
-      ),
-      [],
-    );
-
-    topResearchAreasOpenAlex = await _tryAggregate(
-      () => _openAlexService.fetchWorksGroupedCounts(
-        groupBy: OpenAlexService.groupByConcept,
-        search: search,
-        globalInfluential: globalInfluential,
-        limit: 8,
-      ),
-      [],
+      <int, int>{},
     );
 
     growingTopicsOpenAlex = await _tryAggregate(
@@ -649,35 +976,66 @@ class PublicationProvider extends ChangeNotifier {
       [],
     );
 
-    topPapersOpenAlex = await _tryAggregate(
-      () => _openAlexService.fetchTopPapers(
-        search: search,
-        globalInfluential: globalInfluential,
-        limit: 10,
-      ),
-      [],
-    ); // sort citations — khác danh sách Explore (relevance)
-
-    averageCitationOpenAlex = await _tryAggregate(
-      () => _openAlexService.fetchAverageCitation(
-        search: search,
-        globalInfluential: globalInfluential,
-      ),
-      0.0,
-    );
-
-    final citationMetrics = await _tryAggregate(
-      () => _openAlexService.fetchCitationMetricsByYear(
-        search: search,
-        globalInfluential: globalInfluential,
-      ),
-      (totals: <int, int>{}, averages: <int, int>{}),
-    );
-    citationsByYearOpenAlex = citationMetrics.totals;
-    avgCitationsByYearOpenAlex = citationMetrics.averages;
-
     isTrendLoading = false;
     notifyListeners();
+  }
+
+  List<String> _impactTopicIdsForSearch(String? search) {
+    if (search == null || search.trim().isEmpty) return const [];
+    return topResearchAreasOpenAlex
+        .take(3)
+        .map((topic) => topic.id)
+        .where((id) => id.isNotEmpty)
+        .toList();
+  }
+
+  /// Impact charts cần topic id từ works search — load sau khi có top topics.
+  Future<void> _loadImpactMetrics({
+    String? search,
+    bool globalInfluential = false,
+  }) async {
+    final topicIds = _impactTopicIdsForSearch(search);
+    final results = await Future.wait([
+      _tryAggregate(
+        () => _openAlexService.fetchTopAuthorsByCitations(
+          search: search,
+          globalInfluential: globalInfluential,
+          topicIds: topicIds.isEmpty ? null : topicIds,
+        ),
+        <OpenAlexRankedEntity>[],
+      ),
+      _tryAggregate(
+        () => _openAlexService.fetchTopInstitutionsByCitations(
+          search: search,
+          globalInfluential: globalInfluential,
+          topicIds: topicIds.isEmpty ? null : topicIds,
+        ),
+        <OpenAlexRankedEntity>[],
+      ),
+      _tryAggregate(
+        () => _openAlexService.fetchTopAuthorsByHIndex(
+          search: search,
+          globalInfluential: globalInfluential,
+          topicIds: topicIds.isEmpty ? null : topicIds,
+        ),
+        <OpenAlexRankedEntity>[],
+      ),
+      _tryAggregate(
+        () => _openAlexService.fetchAuthorImpactProfiles(
+          search: search,
+          globalInfluential: globalInfluential,
+          topicIds: topicIds.isEmpty ? null : topicIds,
+        ),
+        <OpenAlexImpactProfile>[],
+      ),
+    ]);
+
+    topAuthorsByCitationsOpenAlex = results[0] as List<OpenAlexRankedEntity>;
+    topInstitutionsByCitationsOpenAlex =
+        results[1] as List<OpenAlexRankedEntity>;
+    topAuthorsByHIndexOpenAlex = results[2] as List<OpenAlexRankedEntity>;
+    authorImpactProfilesOpenAlex =
+        results[3] as List<OpenAlexImpactProfile>;
   }
 
   /// Một API lỗi không làm crash cả dashboard — trả fallback rỗng/0

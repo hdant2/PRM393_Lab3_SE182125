@@ -63,7 +63,10 @@ class KeywordsTabScreen extends StatelessWidget {
                     children: [
                       SizedBox(
                         height: 140,
-                        child: TrendChart(yearlyData: trend),
+                        child: TrendChart(
+                          yearlyData: trend,
+                          overlayYearlyData: provider.citationsByYearOpenAlex,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       Text(

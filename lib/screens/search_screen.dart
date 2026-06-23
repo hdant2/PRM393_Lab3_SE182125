@@ -12,16 +12,15 @@ import '../models/research_insight.dart';
 import '../providers/publication_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/count_format.dart';
+import '../utils/overview_time_range.dart';
 import '../utils/research_insights.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/error_banner.dart';
 import '../widgets/insight_widgets.dart';
+import '../widgets/explore_topic_charts.dart';
 import '../widgets/load_more_footer.dart';
 import '../widgets/publication_card.dart';
 import '../widgets/search_loading_view.dart';
-import '../widgets/topic_trend_analytics.dart';
-import 'author_detail_screen.dart';
-import 'journal_detail_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   final String? initialQuery;
@@ -92,7 +91,6 @@ class _SearchScreenState extends State<SearchScreen> {
     required PublicationProvider provider,
     required bool showSearchLoading,
     required bool inTopicScope,
-    required TopicSnapshot? snapshot,
   }) {
     if (showSearchLoading) {
       return SearchLoadingView(query: provider.currentTopic);
@@ -100,7 +98,6 @@ class _SearchScreenState extends State<SearchScreen> {
     if (inTopicScope) {
       return _ExploreResults(
         provider: provider,
-        snapshot: snapshot,
         loadingInsights: provider.isTrendLoading,
       );
     }
@@ -114,7 +111,6 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<PublicationProvider>();
     final inTopicScope = !provider.isGlobalScope; // đã search hay chưa
-    final snapshot = provider.topicSnapshot;
     final loadingPapers = provider.isSearchLoading;
     // Chỉ full-screen loading khi chưa có bài nào (search mới)
     final showSearchLoading =
@@ -196,7 +192,6 @@ class _SearchScreenState extends State<SearchScreen> {
               provider: provider,
               showSearchLoading: showSearchLoading,
               inTopicScope: inTopicScope,
-              snapshot: snapshot,
             ),
           ),
         ],
@@ -205,29 +200,53 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 }
 
-class _ExploreResults extends StatelessWidget {
-  /// UI sau khi search — đọc hết từ PublicationProvider
+class _ExploreResults extends StatefulWidget {
   final PublicationProvider provider;
-  final TopicSnapshot? snapshot;
   final bool loadingInsights;
 
   const _ExploreResults({
     required this.provider,
-    required this.snapshot,
     required this.loadingInsights,
   });
 
   @override
+  State<_ExploreResults> createState() => _ExploreResultsState();
+}
+
+class _ExploreResultsState extends State<_ExploreResults> {
+  OverviewTimeRange _timeRange = OverviewTimeRange.fiveYears;
+
+  PublicationProvider get provider => widget.provider;
+
+  TopicSnapshot? _snapshotForRange() {
+    if (!provider.isTopicInsightsReady) return null;
+    return ResearchInsights.buildTopicSnapshotForRange(
+      topic: provider.currentTopic,
+      totalPublications: provider.totalOnOpenAlex,
+      yearlyTrend: provider.yearlyTrendFromOpenAlex,
+      monthlyTrend: provider.monthlyTrendFromOpenAlex,
+      citationsByYear: provider.citationsByYearOpenAlex,
+      timeRange: _timeRange,
+      topJournal: provider.rankedJournals.isEmpty
+          ? null
+          : provider.rankedJournals.first,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final snap = snapshot;
-    final journals = provider.rankedJournals.take(4).toList();
-    final authors = provider.rankedAuthors.take(4).toList();
-    final showInsights = provider.isTopicInsightsReady && snap != null;
+    final snap = _snapshotForRange();
+    final showInsights = snap != null;
+    final currentYear = DateTime.now().year;
+    final coverageText = _timeRange.coverageLabelWithMonths(
+      currentYear,
+      provider.monthlyTrendFromOpenAlex,
+    );
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
       children: [
-        if (loadingInsights && !showInsights)
+        if (widget.loadingInsights && !showInsights)
           MockupCard(
             child: Row(
               children: [
@@ -259,6 +278,21 @@ class _ExploreResults extends StatelessWidget {
             ),
           )
         else if (showInsights) ...[
+          SegmentedButton<OverviewTimeRange>(
+            segments: OverviewTimeRange.values
+                .map(
+                  (range) => ButtonSegment(
+                    value: range,
+                    label: Text(range.label),
+                  ),
+                )
+                .toList(),
+            selected: {_timeRange},
+            onSelectionChanged: (selection) {
+              setState(() => _timeRange = selection.first);
+            },
+          ),
+          const SizedBox(height: 12),
           MockupCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -268,6 +302,14 @@ class _ExploreResults extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Khoảng: $coverageText · OpenAlex',
+                  style: const TextStyle(
+                    color: AppColors.textTertiary,
+                    fontSize: 11,
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -280,9 +322,27 @@ class _ExploreResults extends StatelessWidget {
                       ),
                     ),
                     Expanded(
-                      child: _SnapshotStat(
-                        label: 'Growth',
-                        value: ResearchInsights.formatGrowth(snap.growthPercent),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _SnapshotStat(
+                            label: snap.growthLabel,
+                            value: ResearchInsights.formatGrowth(
+                              snap.growthPercent,
+                            ),
+                          ),
+                          if (snap.growthHint != null) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              snap.growthHint!,
+                              style: const TextStyle(
+                                color: AppColors.textTertiary,
+                                fontSize: 9,
+                                height: 1.3,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                   ],
@@ -292,8 +352,12 @@ class _ExploreResults extends StatelessWidget {
                   children: [
                     Expanded(
                       child: _SnapshotStat(
-                        label: 'Peak Year',
-                        value: '${snap.peakYear}',
+                        label: _timeRange == OverviewTimeRange.thisYear
+                            ? 'Peak Month'
+                            : 'Peak Year',
+                        value: _timeRange == OverviewTimeRange.thisYear
+                            ? monthShortLabel(snap.peakYear)
+                            : '${snap.peakYear}',
                       ),
                     ),
                     Expanded(
@@ -329,132 +393,19 @@ class _ExploreResults extends StatelessWidget {
           ),
           const SizedBox(height: 20),
         ],
-        TopicTrendAnalyticsPanel(provider: provider),
+        ExploreTopicCharts(provider: provider, timeRange: _timeRange),
         const SizedBox(height: 20),
-        if (showInsights && journals.isNotEmpty) ...[
-          const Text(
-            'Top Journals',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-          ),
-          const SizedBox(height: 10),
-          SizedBox(
-            height: 110,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: journals.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 10),
-              itemBuilder: (context, index) {
-                final journal = journals[index];
-                return GestureDetector(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => JournalDetailScreen(
-                        journal: journal,
-                        provider: provider,
-                      ),
-                    ),
-                  ),
-                  child: Container(
-                    width: 140,
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          journal.name,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          formatOpenAlexCount(journal.count),
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 11,
-                          ),
-                        ),
-                        const Text(
-                          'publications',
-                          style: TextStyle(
-                            color: AppColors.textTertiary,
-                            fontSize: 9,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 20),
-        ],
-        if (showInsights && authors.isNotEmpty) ...[
-          const Text(
-            'Top Authors',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-          ),
-          const SizedBox(height: 8),
-          MockupCard(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: Column(
-              children: authors
-                  .map(
-                    (author) => ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        author.name,
-                        style: const TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                      trailing: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            formatOpenAlexCount(author.count),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-                            ),
-                          ),
-                          const Text(
-                            'publications',
-                            style: TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 9,
-                            ),
-                          ),
-                        ],
-                      ),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => AuthorDetailScreen(
-                            author: author,
-                            provider: provider,
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
-                  .toList(),
-            ),
-          ),
-          const SizedBox(height: 20),
-        ],
         const Text(
           'Publications',
           style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          'Sorted by relevance (OpenAlex default search ranking)',
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 11,
+          ),
         ),
         const SizedBox(height: 8),
         if (provider.publications.isEmpty)

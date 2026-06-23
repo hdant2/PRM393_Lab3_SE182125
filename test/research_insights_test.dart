@@ -3,6 +3,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:lab2/models/research_insight.dart';
+import 'package:lab2/utils/overview_time_range.dart';
 import 'package:lab2/utils/research_insights.dart';
 import 'package:lab2/models/openalex_ranked_entity.dart';
 import 'package:lab2/models/publication.dart';
@@ -127,5 +128,62 @@ void main() {
 
     expect(snapshot.topic, 'AI');
     expect(snapshot.topJournal, 'Nature');
+  });
+
+  test('buildTopicSnapshotForRange uses YoY within selected range', () {
+    final currentYear = DateTime.now().year;
+    final snapshot = ResearchInsights.buildTopicSnapshotForRange(
+      topic: 'ras',
+      totalPublications: 100_000,
+      yearlyTrend: {
+        currentYear - 9: 100,
+        currentYear - 4: 500,
+        currentYear - 1: 900,
+        currentYear: 1000,
+      },
+      monthlyTrend: {1: 80, 2: 90, 3: 100},
+      citationsByYear: {},
+      timeRange: OverviewTimeRange.fiveYears,
+    );
+
+    expect(snapshot.growthPercent, closeTo(80, 0.5));
+    expect(snapshot.growthLabel, 'Growth (${currentYear - 4}→${currentYear - 1})');
+    expect(snapshot.totalPublications, 2400);
+  });
+
+  test('buildTopicSnapshotForRange uses monthly data for this year', () {
+    final currentYear = DateTime.now().year;
+    final snapshot = ResearchInsights.buildTopicSnapshotForRange(
+      topic: 'ai',
+      totalPublications: 50_000,
+      yearlyTrend: {2024: 1000, 2025: 1200},
+      monthlyTrend: {1: 100, 2: 120, 3: 150},
+      citationsByYear: {},
+      timeRange: OverviewTimeRange.thisYear,
+    );
+
+    expect(snapshot.totalPublications, 370);
+    expect(snapshot.growthPercent, 25);
+    expect(snapshot.growthLabel, 'Growth ($currentYear · Feb→Mar)');
+    expect(snapshot.growthHint, isNull);
+  });
+
+  test('buildTopicSnapshotForRange hints when current year is partial', () {
+    final currentYear = DateTime.now().year;
+    final snapshot = ResearchInsights.buildTopicSnapshotForRange(
+      topic: 'blockchain',
+      totalPublications: 100_000,
+      yearlyTrend: {
+        currentYear - 9: 100,
+        currentYear - 1: 900,
+        currentYear: 400,
+      },
+      monthlyTrend: const {},
+      citationsByYear: const {},
+      timeRange: OverviewTimeRange.tenYears,
+    );
+
+    expect(snapshot.growthLabel, 'Growth (${currentYear - 9}→${currentYear - 1})');
+    expect(snapshot.growthHint, contains('$currentYear'));
   });
 }

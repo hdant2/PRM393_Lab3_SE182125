@@ -21,7 +21,7 @@ class JournalsAnalysisScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<PublicationProvider>();
-    final journals = provider.rankedJournals;
+    final journals = provider.dashboardRankedJournals;
 
     return DefaultTabController(
       length: 2,
@@ -54,7 +54,7 @@ class JournalsAnalysisScreen extends StatelessWidget {
                   child: JournalBarChart(
                     journals: journals.map((j) => j.entry).toList(),
                     onJournalTap: (name) {
-                      final journal = provider.rankedJournalByName(name);
+                      final journal = provider.dashboardRankedJournalByName(name);
                       if (journal == null) return;
                       Navigator.push(
                         context,

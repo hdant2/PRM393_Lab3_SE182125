@@ -190,8 +190,8 @@ class YearBreakdownRow extends StatelessWidget {
                 child: LinearProgressIndicator(
                   value: ratio.clamp(0.05, 1.0),
                   minHeight: 3,
-                  backgroundColor: AppColors.surfaceMuted,
-                  color: AppColors.textPrimary,
+                  backgroundColor: AppColors.chartTrack,
+                  color: AppColors.chartPrimary,
                 ),
               ),
             ],

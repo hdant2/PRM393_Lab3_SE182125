@@ -87,7 +87,7 @@ class JournalAiAppBar extends StatelessWidget {
               icon: const Icon(Icons.refresh, size: 20),
               onPressed: provider.isLoading
                   ? null
-                  : () => provider.refreshCurrentAnalysis(),
+                  : () => provider.loadDefaultDashboard(),
             )
           else if (showBell)
             IconButton(

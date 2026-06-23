@@ -18,7 +18,7 @@ class ResearchLeadersScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<PublicationProvider>();
-    final authors = provider.rankedAuthors;
+    final authors = provider.dashboardRankedAuthors;
 
     return Scaffold(
       appBar: AppBar(

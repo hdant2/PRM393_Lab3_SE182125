@@ -4,22 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/openalex_ranked_entity.dart';
+import '../models/research_insight.dart';
 import '../providers/publication_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/count_format.dart';
+import '../utils/overview_time_range.dart';
+import '../utils/research_insights.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/error_banner.dart';
-import '../widgets/research_landscape_grid.dart';
+import '../widgets/overview_dashboard_charts.dart';
 import 'author_detail_screen.dart';
-import 'citation_leaders_screen.dart';
 import 'detail_screen.dart';
 import 'domain_detail_screen.dart';
-import 'growth_screen.dart';
 import 'journal_detail_screen.dart';
-import 'journals_analysis_screen.dart';
-import 'keywords_overview_screen.dart';
-import 'research_domains_screen.dart';
-import 'research_leaders_screen.dart';
 /// Overview / Dashboard — màn chính theo mockup JournalAI
 class OverviewScreen extends StatelessWidget {
   const OverviewScreen({super.key});
@@ -39,20 +36,40 @@ class OverviewScreen extends StatelessWidget {
   }
 }
 
-class _OverviewBody extends StatelessWidget {
+class _OverviewBody extends StatefulWidget {
   final PublicationProvider provider;
 
   const _OverviewBody({required this.provider});
 
   @override
+  State<_OverviewBody> createState() => _OverviewBodyState();
+}
+
+class _OverviewBodyState extends State<_OverviewBody> {
+  OverviewTimeRange _timeRange = OverviewTimeRange.thisYear;
+
+  PublicationProvider get provider => widget.provider;
+
+  String _peakPeriodLabel(Map<int, int> volume, LandscapePulse pulse) {
+    if (volume.isEmpty) return 'N/A';
+    if (_timeRange == OverviewTimeRange.thisYear) {
+      final peak = volume.entries.reduce(
+        (a, b) => a.value >= b.value ? a : b,
+      );
+      return monthShortLabel(peak.key);
+    }
+    return pulse.peakYear > 0 ? '${pulse.peakYear}' : 'N/A';
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (provider.isDashboardLoading && !provider.hasData) {
+    if (provider.isDashboardLoading && !provider.hasDashboardData) {
       return const Expanded(
         child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
       );
     }
 
-    if (provider.errorMessage != null && !provider.hasData) {
+    if (provider.errorMessage != null && !provider.hasDashboardData) {
       return Expanded(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -64,15 +81,39 @@ class _OverviewBody extends StatelessWidget {
       );
     }
 
-    if (!provider.hasData) {
+    if (!provider.hasDashboardData) {
       return const Expanded(
         child: Center(child: Text('Loading research data...')),
       );
     }
 
+    final currentYear = DateTime.now().year;
+    final monthlyTrend = provider.dashboardMonthlyTrendFromOpenAlex;
+    final volumeInRange = _timeRange == OverviewTimeRange.thisYear
+        ? monthlyTrend
+        : filterYearlyDataByRange(
+            provider.dashboardYearlyTrendFromOpenAlex,
+            _timeRange,
+          );
+    final publicationsInRange = volumeInRange.values.fold<int>(
+      0,
+      (sum, count) => sum + count,
+    );
+    final rangePulse = ResearchInsights.buildLandscapePulse(
+      totalPublications: publicationsInRange,
+      volumeByYear: _timeRange == OverviewTimeRange.thisYear
+          ? volumeInRange
+          : volumeInRange,
+      averageCitations: provider.dashboardAverageCitationOpenAlex,
+    );
+    final coverageText = _timeRange.coverageLabelWithMonths(
+      currentYear,
+      monthlyTrend,
+    );
+
     return Expanded(
       child: RefreshIndicator(
-        onRefresh: () => provider.refreshCurrentAnalysis(),
+        onRefresh: () => provider.loadDefaultDashboard(),
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
           children: [
@@ -81,7 +122,7 @@ class _OverviewBody extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 12),
                 child: ErrorBanner(
                   message: provider.errorMessage!,
-                  onRetry: () => provider.refreshCurrentAnalysis(),
+                  onRetry: () => provider.loadDefaultDashboard(),
                 ),
               ),
                     const Text(
@@ -94,6 +135,21 @@ class _OverviewBody extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 10),
+                    SegmentedButton<OverviewTimeRange>(
+                      segments: OverviewTimeRange.values
+                          .map(
+                            (range) => ButtonSegment(
+                              value: range,
+                              label: Text(range.label),
+                            ),
+                          )
+                          .toList(),
+                      selected: {_timeRange},
+                      onSelectionChanged: (selection) {
+                        setState(() => _timeRange = selection.first);
+                      },
+                    ),
+                    const SizedBox(height: 12),
                     MockupCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,7 +163,9 @@ class _OverviewBody extends StatelessWidget {
                                   children: [
                                     Text(
                                       formatOpenAlexCount(
-                                        provider.totalOnOpenAlex,
+                                        publicationsInRange > 0
+                                            ? publicationsInRange
+                                            : provider.dashboardTotalOnOpenAlex,
                                       ),
                                       style: const TextStyle(
                                         fontSize: 32,
@@ -123,9 +181,9 @@ class _OverviewBody extends StatelessWidget {
                                       ),
                                     ),
                                     const SizedBox(height: 2),
-                                    const Text(
-                                      'Influential works since 2015 · OpenAlex',
-                                      style: TextStyle(
+                                    Text(
+                                      'Influential works · $coverageText · OpenAlex',
+                                      style: const TextStyle(
                                         color: AppColors.textTertiary,
                                         fontSize: 10,
                                       ),
@@ -134,7 +192,7 @@ class _OverviewBody extends StatelessWidget {
                                 ),
                               ),
                               GrowthBadge(
-                                percent: provider.landscapePulse.yoyGrowthPercent,
+                                percent: rangePulse.yoyGrowthPercent,
                               ),
                             ],
                           ),
@@ -143,21 +201,23 @@ class _OverviewBody extends StatelessWidget {
                             children: [
                               StatColumn(
                                 label: 'Average Citations',
-                                value: provider.averageCitationOpenAlex
+                                value: provider.dashboardAverageCitationOpenAlex
                                     .toStringAsFixed(1),
                                 hint: 'top 100 avg',
                               ),
                               StatColumn(
-                                label: 'Peak Year',
-                                value: provider.landscapePulse.peakYear > 0
-                                    ? '${provider.landscapePulse.peakYear}'
-                                    : 'N/A',
-                                hint: 'most papers',
+                                label: _timeRange == OverviewTimeRange.thisYear
+                                    ? 'Peak Month'
+                                    : 'Peak Year',
+                                value: _peakPeriodLabel(volumeInRange, rangePulse),
+                                hint: _timeRange == OverviewTimeRange.thisYear
+                                    ? 'most papers'
+                                    : 'most papers',
                               ),
                               StatColumn(
                                 label: 'Coverage',
-                                value: '2015–${DateTime.now().year}',
-                                hint: 'years',
+                                value: coverageText,
+                                hint: 'selected range',
                               ),
                             ],
                           ),
@@ -165,116 +225,13 @@ class _OverviewBody extends StatelessWidget {
                       ),
                     ),
                     _KeyResearchInsightsSection(provider: provider),
-                    const SizedBox(height: 28),
-                    const Text(
-                      'Research Domains Map',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.4,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Tap a domain to explore its research profile',
-                      style: TextStyle(
-                        color: AppColors.textTertiary,
-                        fontSize: 11,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    MockupCard(
-                      child: ResearchLandscapeGrid(
-                        domains: provider.trendingAreas,
-                        onDomainTap: (domain) => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => DomainDetailScreen(domain: domain),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 28),
-                    const Text(
-                      'Research Landscape',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.4,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    LandscapeTile(
-                      icon: Icons.trending_up_outlined,
-                      title: 'Research Growth',
-                      subtitle: 'Publication trends over time',
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const GrowthScreen(),
-                        ),
-                      ),
-                    ),
-                    LandscapeTile(
-                      icon: Icons.emoji_events_outlined,
-                      title: 'Citation Leaders',
-                      subtitle: 'Most cited papers and authors',
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const CitationLeadersScreen(),
-                        ),
-                      ),
-                    ),
-                    LandscapeTile(
-                      icon: Icons.menu_book_outlined,
-                      title: 'Publication Sources',
-                      subtitle: 'Top journals and venues',
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const JournalsAnalysisScreen(),
-                        ),
-                      ),
-                    ),
-                    LandscapeTile(
-                      icon: Icons.hub_outlined,
-                      title: 'Research Domains',
-                      subtitle: 'Field distribution and hot topics',
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const ResearchDomainsScreen(),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    LandscapeTile(
-                      icon: Icons.tag_outlined,
-                      title: 'Keyword Overview',
-                      subtitle: 'Top keywords and emerging topics',
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const KeywordsOverviewScreen(),
-                        ),
-                      ),
-                    ),
-                    LandscapeTile(
-                      icon: Icons.person_outline,
-                      title: 'Research Leaders',
-                      subtitle: 'Authors with the most publications',
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const ResearchLeadersScreen(),
-                        ),
-                      ),
+                    const SizedBox(height: 24),
+                    OverviewDashboardCharts(
+                      provider: provider,
+                      timeRange: _timeRange,
                     ),
                     const SizedBox(height: 20),
-                    if (provider.growingTopicsOpenAlex.isNotEmpty) ...[
+                    if (provider.dashboardGrowingTopicsOpenAlex.isNotEmpty) ...[
                       const Text(
                         'Emerging Topics',
                         style: TextStyle(
@@ -296,12 +253,12 @@ class _OverviewBody extends StatelessWidget {
                       MockupCard(
                         padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
                         child: Column(
-                          children: provider.growingTopicsOpenAlex
+                          children: provider.dashboardGrowingTopicsOpenAlex
                               .take(5)
                               .map(
                                 (topic) => InkWell(
                                   onTap: () {
-                                    final domain = provider.rankedConceptById(
+                                    final domain = provider.dashboardRankedConceptById(
                                           topic.id,
                                         ) ??
                                         OpenAlexRankedEntity(
@@ -400,9 +357,9 @@ class _KeyResearchInsightsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (provider.topJournalsOpenAlex.isEmpty &&
-        provider.topAuthorsOpenAlex.isEmpty &&
-        provider.topPapersOpenAlex.isEmpty) {
+    if (provider.dashboardRankedJournals.isEmpty &&
+        provider.dashboardRankedAuthors.isEmpty &&
+        provider.dashboardTopPapersOpenAlex.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -429,43 +386,43 @@ class _KeyResearchInsightsSection extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 14),
-              if (provider.topJournalsOpenAlex.isNotEmpty)
+              if (provider.dashboardRankedJournals.isNotEmpty)
                 _DashboardInsightRow(
                   label: 'Top Journal',
-                  value: provider.topJournalsOpenAlex.first.name,
+                  value: provider.dashboardRankedJournals.first.name,
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => JournalDetailScreen(
-                        journal: provider.topJournalsOpenAlex.first,
+                        journal: provider.dashboardRankedJournals.first,
                         provider: provider,
                       ),
                     ),
                   ),
                 ),
-              if (provider.topAuthorsOpenAlex.isNotEmpty)
+              if (provider.dashboardRankedAuthors.isNotEmpty)
                 _DashboardInsightRow(
                   label: 'Top Author',
-                  value: provider.topAuthorsOpenAlex.first.name,
+                  value: provider.dashboardRankedAuthors.first.name,
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => AuthorDetailScreen(
-                        author: provider.topAuthorsOpenAlex.first,
+                        author: provider.dashboardRankedAuthors.first,
                         provider: provider,
                       ),
                     ),
                   ),
                 ),
-              if (provider.topPapersOpenAlex.isNotEmpty)
+              if (provider.dashboardTopPapersOpenAlex.isNotEmpty)
                 _DashboardInsightRow(
                   label: 'Most Influential Paper',
-                  value: provider.topPapersOpenAlex.first.title,
+                  value: provider.dashboardTopPapersOpenAlex.first.title,
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => DetailScreen(
-                        publication: provider.topPapersOpenAlex.first,
+                        publication: provider.dashboardTopPapersOpenAlex.first,
                       ),
                     ),
                   ),

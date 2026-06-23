@@ -18,8 +18,8 @@ class KeywordsOverviewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<PublicationProvider>();
-    final keywords = provider.trendingAreas;
-    final emerging = provider.growingTopicsOpenAlex;
+    final keywords = provider.dashboardTrendingAreas;
+    final emerging = provider.dashboardGrowingTopicsOpenAlex;
 
     return Scaffold(
       appBar: AppBar(
@@ -74,7 +74,7 @@ class KeywordsOverviewScreen extends StatelessWidget {
                   )
                 : Column(
                     children: emerging.take(6).map((topic) {
-                      final domain = provider.rankedConceptById(topic.id) ??
+                      final domain = provider.dashboardRankedConceptById(topic.id) ??
                           OpenAlexRankedEntity(
                             id: topic.id,
                             name: topic.name,

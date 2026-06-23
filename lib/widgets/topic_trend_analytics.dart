@@ -146,7 +146,12 @@ class _TopicTrendAnalyticsPanelState extends State<TopicTrendAnalyticsPanel> {
         else
           MockupCard(
             padding: const EdgeInsets.fromLTRB(8, 16, 16, 8),
-            child: TrendChart(yearlyData: yearlyData),
+            child: TrendChart(
+              yearlyData: yearlyData,
+              overlayYearlyData: _metric == TrendMetric.publications
+                  ? provider.citationsByYearOpenAlex
+                  : null,
+            ),
           ),
         if (!widget.compact && yearlyData.isNotEmpty) ...[
           const SizedBox(height: 16),

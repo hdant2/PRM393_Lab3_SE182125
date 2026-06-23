@@ -94,6 +94,8 @@ class TopicSnapshot {
   final String topic;
   final int totalPublications;
   final double growthPercent;
+  final String growthLabel;
+  final String? growthHint;
   final int peakYear;
   final String? topJournal;
   final MomentumLevel momentum;
@@ -103,6 +105,8 @@ class TopicSnapshot {
     required this.topic,
     required this.totalPublications,
     required this.growthPercent,
+    required this.growthLabel,
+    this.growthHint,
     required this.peakYear,
     this.topJournal,
     required this.momentum,

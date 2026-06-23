@@ -32,7 +32,7 @@ class _MainShellState extends State<MainShell> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<PublicationProvider>();
-      if (!provider.hasData && !provider.isDashboardLoading) {
+      if (!provider.hasDashboardData && !provider.isDashboardLoading) {
         provider.loadDefaultDashboard();
       }
       provider.loadRecentSearches();
