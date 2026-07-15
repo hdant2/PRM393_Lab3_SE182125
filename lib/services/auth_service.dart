@@ -3,78 +3,37 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'analytics_service.dart';
 
 class AuthService {
+  FirebaseAuth get _firebaseAuth => FirebaseAuth.instance;
+  GoogleSignIn get _googleSignIn => GoogleSignIn.instance;
 
-  // =====================================================
-  // FIREBASE AUTH INSTANCE
-  // =====================================================
+  User? get currentUser => _firebaseAuth.currentUser;
 
-  final FirebaseAuth _firebaseAuth =
-      FirebaseAuth.instance;
-
-  final GoogleSignIn _googleSignIn =
-      GoogleSignIn();
-
-  // =====================================================
-  // CURRENT USER
-  // =====================================================
-
-  User? get currentUser =>
-      _firebaseAuth.currentUser;
-
-  // =====================================================
-  // AUTH STATE STREAM
-  // =====================================================
-
-  Stream<User?> get authStateChanges =>
-      _firebaseAuth.authStateChanges();
-
-  // =====================================================
-  // GOOGLE SIGN IN
-  // =====================================================
+  Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
 
   Future<UserCredential> signInWithGoogle() async {
+    await _googleSignIn.initialize();
 
-    // Mở popup chọn tài khoản Google
-    final GoogleSignInAccount? googleUser =
-        await _googleSignIn.signIn();
+    final GoogleSignInAccount googleUser =
+        await _googleSignIn.authenticate();
 
-    // User bấm Cancel
-    if (googleUser == null) {
-      throw Exception(
-        'Google Sign In cancelled',
-      );
-    }
-
-    // Lấy token Google
     final GoogleSignInAuthentication googleAuth =
-        await googleUser.authentication;
+        googleUser.authentication;
 
-    // Tạo Firebase Credential
-    final credential =
-        GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
+    final credential = GoogleAuthProvider.credential(
       idToken: googleAuth.idToken,
     );
+
     final userCredential =
-          await _firebaseAuth.signInWithCredential(
-        credential,
-      );
+        await _firebaseAuth.signInWithCredential(credential);
 
-      await AnalyticsService.logLogin();
+    await AnalyticsService.logLogin();
 
-      return userCredential;
+    return userCredential;
   }
 
-  // =====================================================
-  // LOGOUT
-  // =====================================================
-
   Future<void> signOut() async {
-
     await AnalyticsService.logLogout();
-
-    await _googleSignIn.signOut();
-
+    await _googleSignIn.disconnect();
     await _firebaseAuth.signOut();
   }
 }

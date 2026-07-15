@@ -53,74 +53,76 @@ class _SearchScreenState extends State<SearchScreen> {
     final snapshot = provider.topicSnapshot;
     final loadingPapers = provider.isSearchLoading;
 
-    return SafeArea(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(20, 12, 20, 0),
-            child: Text(
-              'Explore',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 12, 20, 0),
+              child: Text(
+                'Explore',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-            child: TextField(
-              controller: _searchController,
-              textInputAction: TextInputAction.search,
-              onSubmitted: (_) => _search(),
-              decoration: InputDecoration(
-                hintText: 'Search research topics...',
-                prefixIcon: const Icon(Icons.search, size: 20),
-                suffixIcon: loadingPapers
-                    ? const Padding(
-                        padding: EdgeInsets.all(12),
-                        child: SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+              child: TextField(
+                controller: _searchController,
+                textInputAction: TextInputAction.search,
+                onSubmitted: (_) => _search(),
+                decoration: InputDecoration(
+                  hintText: 'Search research topics...',
+                  prefixIcon: const Icon(Icons.search, size: 20),
+                  suffixIcon: loadingPapers
+                      ? const Padding(
+                          padding: EdgeInsets.all(12),
+                          child: SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      : IconButton(
+                          icon: const Icon(Icons.arrow_forward, size: 20),
+                          onPressed: loadingPapers ? null : () => _search(),
                         ),
-                      )
-                    : IconButton(
-                        icon: const Icon(Icons.arrow_forward, size: 20),
-                        onPressed: loadingPapers ? null : () => _search(),
-                      ),
+                ),
               ),
             ),
-          ),
-          if (provider.errorMessage != null && inTopicScope)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-              child: ErrorBanner(
-                message: provider.errorMessage!,
-                onRetry: () => _search(),
+            if (provider.errorMessage != null && inTopicScope)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                child: ErrorBanner(
+                  message: provider.errorMessage!,
+                  onRetry: () => _search(),
+                ),
               ),
-            ),
-          if (inTopicScope)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-              child: TextButton(
-                onPressed: loadingPapers
-                    ? null
-                    : () => provider.loadDefaultDashboard(),
-                child: const Text('Back to global overview'),
+            if (inTopicScope)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                child: TextButton(
+                  onPressed: loadingPapers
+                      ? null
+                      : () => provider.loadDefaultDashboard(),
+                  child: const Text('Back to global overview'),
+                ),
               ),
+            Expanded(
+              child: inTopicScope
+                  ? _ExploreResults(
+                      provider: provider,
+                      snapshot: snapshot,
+                      loadingPapers: loadingPapers,
+                      loadingInsights: provider.isTrendLoading,
+                    )
+                  : _ExploreSuggestions(
+                      onSearch: _search,
+                      loadingPapers: loadingPapers,
+                    ),
             ),
-          Expanded(
-            child: inTopicScope
-                ? _ExploreResults(
-                    provider: provider,
-                    snapshot: snapshot,
-                    loadingPapers: loadingPapers,
-                    loadingInsights: provider.isTrendLoading,
-                  )
-                : _ExploreSuggestions(
-                    onSearch: _search,
-                    loadingPapers: loadingPapers,
-                  ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

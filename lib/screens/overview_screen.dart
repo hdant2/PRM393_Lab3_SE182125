@@ -24,7 +24,7 @@ class OverviewScreen extends StatelessWidget {
     return SafeArea(
       child: Column(
         children: [
-          const JournalAiAppBar(showRefresh: true, showBell: true),
+          const JournalAiAppBar(showRefresh: true, showBell: true, showSearch: false),
           if (provider.isDashboardLoading && !provider.hasData)
             const Expanded(
               child: Center(child: CircularProgressIndicator(strokeWidth: 2)),

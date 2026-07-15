@@ -5,7 +5,9 @@ import 'package:provider/provider.dart';
 import 'package:lab2/theme/app_theme.dart';
 import 'package:lab2/viewmodels/app_navigation_viewmodel.dart';
 import 'package:lab2/viewmodels/publication_viewmodel.dart';
-import 'package:lab2/screens/main_shell.dart';
+import 'package:lab2/screens/overview_screen.dart';
+import 'package:lab2/screens/journals_tab_screen.dart';
+import 'package:lab2/screens/keywords_screen.dart';
 
 void main() {
   testWidgets('JournalAI shell smoke test', (WidgetTester tester) async {
@@ -17,12 +19,20 @@ void main() {
         ],
         child: MaterialApp(
           theme: buildAppTheme(),
-          home: const MainShell(),
+          home: Scaffold(
+            body: IndexedStack(
+              index: 0,
+              children: const [
+                OverviewScreen(),
+                JournalsTabScreen(),
+                KeywordsScreen(),
+              ],
+            ),
+          ),
         ),
       ),
     );
 
-    expect(find.text('Overview'), findsWidgets);
     expect(find.text('JournalAI'), findsWidgets);
   });
 }

@@ -189,7 +189,7 @@ class PdfService {
 
           pw.SizedBox(height: 10),
 
-          pw.Table.fromTextArray(
+          pw.TableHelper.fromTextArray(
             headers: [
               '#',
               'Journal',
@@ -223,7 +223,7 @@ class PdfService {
 
           pw.SizedBox(height: 10),
 
-          pw.Table.fromTextArray(
+          pw.TableHelper.fromTextArray(
             headers: [
               '#',
               'Author',

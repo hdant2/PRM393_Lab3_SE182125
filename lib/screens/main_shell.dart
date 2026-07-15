@@ -3,10 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../viewmodels/app_navigation_viewmodel.dart';
 import '../viewmodels/publication_viewmodel.dart';
-import 'about_screen.dart';
 import 'overview_screen.dart';
-import 'search_screen.dart';
-import 'trend_screen.dart';
+import 'journals_tab_screen.dart';
+import 'keywords_screen.dart';
 import 'profile_screen.dart';
 
 class MainShell extends StatefulWidget {
@@ -19,11 +18,9 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   static const _pages = [
     OverviewScreen(),
-    TrendScreen(),
-    SearchScreen(),
-    AboutScreen(),
+    JournalsTabScreen(),
+    KeywordsScreen(),
     ProfileScreen(),
-
   ];
 
   @override
@@ -55,29 +52,23 @@ class _MainShellState extends State<MainShell> {
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home),
-            label: 'Overview',
+            label: 'Home',
           ),
           NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart),
-            label: 'Analytics',
+            icon: Icon(Icons.menu_book_outlined),
+            selectedIcon: Icon(Icons.menu_book),
+            label: 'Journals',
           ),
           NavigationDestination(
-            icon: Icon(Icons.explore_outlined),
-            selectedIcon: Icon(Icons.explore),
-            label: 'Explore',
+            icon: Icon(Icons.search_outlined),
+            selectedIcon: Icon(Icons.search),
+            label: 'Keywords',
           ),
           NavigationDestination(
-            icon: Icon(Icons.info_outline),
-            selectedIcon: Icon(Icons.info),
-            label: 'About',
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Profile',
           ),
-
-          NavigationDestination(
-    icon: Icon(Icons.person_outline),
-    selectedIcon: Icon(Icons.person),
-    label: 'Profile',
-  ),
         ],
       ),
     );
