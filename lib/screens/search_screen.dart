@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 // =============================================================================
+=======
+﻿// =============================================================================
+>>>>>>> feature/lab3
 // search_screen.dart — EXPLORE / SEARCH (màn cũ, mở từ Home)
 // =============================================================================
 // Search topic → provider.searchPublications → snapshot + load more 20 bài.
@@ -9,7 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/research_insight.dart';
-import '../providers/publication_provider.dart';
+import '../viewmodels/publication_viewmodel.dart';
 import '../theme/app_theme.dart';
 import '../utils/count_format.dart';
 import '../utils/overview_time_range.dart';
@@ -50,7 +54,11 @@ class _SearchScreenState extends State<SearchScreen> {
       _searchController.text = preset;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
+<<<<<<< HEAD
       context.read<PublicationProvider>().loadRecentSearches();
+=======
+      context.read<PublicationViewModel>().loadRecentSearches();
+>>>>>>> feature/lab3
     });
   }
 
@@ -60,7 +68,7 @@ class _SearchScreenState extends State<SearchScreen> {
     final topic = _searchController.text.trim();
     if (topic.isEmpty) return;
 
-    await context.read<PublicationProvider>().searchPublications(topic);
+    await context.read<PublicationViewModel>().searchPublications(topic);
   }
 
   @override
@@ -88,7 +96,11 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildExpandedContent({
+<<<<<<< HEAD
     required PublicationProvider provider,
+=======
+    required PublicationViewModel provider,
+>>>>>>> feature/lab3
     required bool showSearchLoading,
     required bool inTopicScope,
   }) {
@@ -109,24 +121,31 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
     final provider = context.watch<PublicationProvider>();
+=======
+    final provider = context.watch<PublicationViewModel>();
+>>>>>>> feature/lab3
     final inTopicScope = !provider.isGlobalScope; // đã search hay chưa
     final loadingPapers = provider.isSearchLoading;
     // Chỉ full-screen loading khi chưa có bài nào (search mới)
     final showSearchLoading =
         loadingPapers && provider.publications.isEmpty;
 
-    return SafeArea(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Explore'),
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back, size: 20),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
+      ),
+      body: SafeArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(20, 12, 20, 0),
-            child: Text(
-              'Explore',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-            ),
-          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
             child: TextField(
@@ -196,12 +215,17 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
         ],
       ),
+      ),
     );
   }
 }
 
 class _ExploreResults extends StatefulWidget {
+<<<<<<< HEAD
   final PublicationProvider provider;
+=======
+  final PublicationViewModel provider;
+>>>>>>> feature/lab3
   final bool loadingInsights;
 
   const _ExploreResults({
@@ -216,7 +240,11 @@ class _ExploreResults extends StatefulWidget {
 class _ExploreResultsState extends State<_ExploreResults> {
   OverviewTimeRange _timeRange = OverviewTimeRange.fiveYears;
 
+<<<<<<< HEAD
   PublicationProvider get provider => widget.provider;
+=======
+  PublicationViewModel get provider => widget.provider;
+>>>>>>> feature/lab3
 
   TopicSnapshot? _snapshotForRange() {
     if (!provider.isTopicInsightsReady) return null;

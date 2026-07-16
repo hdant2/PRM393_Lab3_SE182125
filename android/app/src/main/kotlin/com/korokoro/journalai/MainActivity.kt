@@ -1,4 +1,4 @@
-package com.example.lab2
+package com.korokoro.journalai
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import '../models/openalex_ranked_entity.dart';
 import '../models/openalex_works_result.dart';
 import '../models/publication.dart';
-import '../providers/publication_provider.dart';
+import '../viewmodels/publication_viewmodel.dart';
 import '../theme/app_theme.dart';
 import '../utils/count_format.dart';
 import '../widgets/app_logo.dart';
@@ -20,7 +20,7 @@ import 'domain_detail_screen.dart';
 
 class YearDetailScreen extends StatefulWidget {
   final int year;
-  final PublicationProvider provider;
+  final PublicationViewModel provider;
 
   const YearDetailScreen({
     super.key,

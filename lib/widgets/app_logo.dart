@@ -7,8 +7,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/publication_provider.dart';
+import '../viewmodels/publication_viewmodel.dart';
 import '../theme/app_theme.dart';
+import '../screens/search_screen.dart';
 
 class AppLogo extends StatelessWidget {
   final double size;
@@ -43,16 +44,20 @@ class AppLogo extends StatelessWidget {
 class JournalAiAppBar extends StatelessWidget {
   final bool showRefresh;
   final bool showBell;
+  final bool showSearch;
+  final VoidCallback? onBellTap;
 
   const JournalAiAppBar({
     super.key,
     this.showRefresh = false,
     this.showBell = true,
+    this.showSearch = true,
+    this.onBellTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final provider = showRefresh ? context.watch<PublicationProvider>() : null;
+    final provider = showRefresh ? context.watch<PublicationViewModel>() : null;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 12, 12, 8),
@@ -82,17 +87,33 @@ class JournalAiAppBar extends StatelessWidget {
             ],
           ),
           const Spacer(),
+          if (showSearch)
+            IconButton(
+              icon: const Icon(Icons.search, size: 22),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SearchScreen()),
+                );
+              },
+            ),
           if (showRefresh && provider != null)
             IconButton(
               icon: const Icon(Icons.refresh, size: 20),
               onPressed: provider.isLoading
                   ? null
+<<<<<<< HEAD
                   : () => provider.loadDefaultDashboard(),
             )
           else if (showBell)
+=======
+                  : () => provider.refreshCurrentAnalysis(),
+            ),
+          if (showBell)
+>>>>>>> feature/lab3
             IconButton(
               icon: const Icon(Icons.notifications_none, size: 22),
-              onPressed: () {},
+              onPressed: onBellTap,
             ),
         ],
       ),

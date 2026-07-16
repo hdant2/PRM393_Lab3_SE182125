@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
 
+<<<<<<< HEAD
 import '../providers/publication_provider.dart';
+=======
+import '../viewmodels/publication_viewmodel.dart';
+>>>>>>> feature/lab3
 import '../utils/analytics_year.dart';
 import '../utils/overview_time_range.dart';
 import 'analytics_charts_panel.dart';
 
 /// Biểu đồ dashboard Overview — hiển thị trực tiếp, không cần bấm vào tile.
 class OverviewDashboardCharts extends StatelessWidget {
+<<<<<<< HEAD
   final PublicationProvider provider;
+=======
+  final PublicationViewModel provider;
+>>>>>>> feature/lab3
   final OverviewTimeRange timeRange;
 
   const OverviewDashboardCharts({

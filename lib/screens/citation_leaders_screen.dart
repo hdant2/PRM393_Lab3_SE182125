@@ -7,7 +7,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/publication_provider.dart';
+import '../viewmodels/publication_viewmodel.dart';
 import '../utils/count_format.dart';
 import '../widgets/ranked_list_widgets.dart';
 import 'author_detail_screen.dart';
@@ -52,7 +52,11 @@ class CitationLeadersScreen extends StatelessWidget {
 class _PapersTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
     final papers = context.watch<PublicationProvider>().dashboardTopPapersOpenAlex;
+=======
+    final papers = context.watch<PublicationViewModel>().dashboardTopPapersOpenAlex;
+>>>>>>> feature/lab3
 
     if (papers.isEmpty) {
       return const Center(child: Text('No papers from OpenAlex'));
@@ -87,8 +91,13 @@ class _PapersTab extends StatelessWidget {
 class _AuthorsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
     final provider = context.watch<PublicationProvider>();
     final authors = provider.dashboardRankedAuthors;
+=======
+    final provider = context.watch<PublicationViewModel>();
+    final authors = provider.rankedAuthors;
+>>>>>>> feature/lab3
 
     if (authors.isEmpty) {
       return const Center(child: Text('No authors from OpenAlex'));
@@ -136,8 +145,13 @@ class _AuthorsTab extends StatelessWidget {
 class _JournalsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
     final provider = context.watch<PublicationProvider>();
     final journals = provider.dashboardRankedJournals;
+=======
+    final provider = context.watch<PublicationViewModel>();
+    final journals = provider.rankedJournals;
+>>>>>>> feature/lab3
 
     if (journals.isEmpty) {
       return const Center(child: Text('No journals from OpenAlex'));

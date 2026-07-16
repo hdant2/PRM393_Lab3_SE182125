@@ -7,7 +7,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/publication_provider.dart';
+import '../viewmodels/publication_viewmodel.dart';
 import '../utils/count_format.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/journal_bar_chart.dart';
@@ -20,8 +20,13 @@ class JournalsAnalysisScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
     final provider = context.watch<PublicationProvider>();
     final journals = provider.dashboardRankedJournals;
+=======
+    final provider = context.watch<PublicationViewModel>();
+    final journals = provider.rankedJournals;
+>>>>>>> feature/lab3
 
     return DefaultTabController(
       length: 2,

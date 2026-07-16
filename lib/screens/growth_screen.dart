@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 
 import '../models/openalex_ranked_entity.dart';
 import '../models/research_insight.dart';
-import '../providers/publication_provider.dart';
+import '../viewmodels/publication_viewmodel.dart';
 import '../theme/app_theme.dart';
 import '../utils/research_insights.dart';
 import '../widgets/app_logo.dart';
@@ -44,7 +44,11 @@ class _GrowthScreenState extends State<GrowthScreen> {
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
     final provider = context.watch<PublicationProvider>();
+=======
+    final provider = context.watch<PublicationViewModel>();
+>>>>>>> feature/lab3
     final trend = _filterTrend(provider.dashboardYearlyTrendFromOpenAlex);
     final insight = ResearchInsights.analyzeTrend(volumeByYear: trend);
     final domains = provider.dashboardGrowingTopicsOpenAlex.isNotEmpty

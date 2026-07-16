@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "843211294647",
+    "project_id": "korokoro-b6a76",
+    "storage_bucket": "korokoro-b6a76.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:843211294647:android:501b139771cdd1818c4a32",
+        "android_client_info": {
+          "package_name": "com.korokoro.journalai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "843211294647-5tbq9c32cts4hrb87ajie6r7mf5rgudt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.korokoro.journalai",
+            "certificate_hash": "4196d728ee34b4c7ef8c3d3ee1d2ef1bf2eedbf9"
+          }
+        },
+        {
+          "client_id": "843211294647-nkdig5n435sc77bp5b71m4pfu59lp5ka.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAE1ZHVQt1BnskLNbDA6ScMcaX2LunBr1E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "843211294647-nkdig5n435sc77bp5b71m4pfu59lp5ka.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

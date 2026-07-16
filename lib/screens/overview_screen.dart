@@ -1,11 +1,20 @@
+<<<<<<< HEAD
 // Tab Overview — UI gốc mockup + bổ sung thầy (KHÔNG xóa phần cũ)
+=======
+﻿// Tab Overview — UI gốc mockup + bổ sung thầy (KHÔNG xóa phần cũ)
+>>>>>>> feature/lab3
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/openalex_ranked_entity.dart';
 import '../models/research_insight.dart';
+<<<<<<< HEAD
 import '../providers/publication_provider.dart';
+=======
+import '../viewmodels/app_navigation_viewmodel.dart';
+import '../viewmodels/publication_viewmodel.dart';
+>>>>>>> feature/lab3
 import '../theme/app_theme.dart';
 import '../utils/count_format.dart';
 import '../utils/overview_time_range.dart';
@@ -17,18 +26,33 @@ import 'author_detail_screen.dart';
 import 'detail_screen.dart';
 import 'domain_detail_screen.dart';
 import 'journal_detail_screen.dart';
+<<<<<<< HEAD
+=======
+
+>>>>>>> feature/lab3
 /// Overview / Dashboard — màn chính theo mockup JournalAI
 class OverviewScreen extends StatelessWidget {
   const OverviewScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<PublicationProvider>();
+    final provider = context.watch<PublicationViewModel>();
 
     return SafeArea(
       child: Column(
         children: [
+<<<<<<< HEAD
           const JournalAiAppBar(showRefresh: true, showBell: true),
+=======
+          JournalAiAppBar(
+            showRefresh: true,
+            showBell: true,
+            showSearch: false,
+            onBellTap: () {
+              context.read<AppNavigationViewModel>().goToTab(3);
+            },
+          ),
+>>>>>>> feature/lab3
           _OverviewBody(provider: provider),
         ],
       ),
@@ -37,7 +61,11 @@ class OverviewScreen extends StatelessWidget {
 }
 
 class _OverviewBody extends StatefulWidget {
+<<<<<<< HEAD
   final PublicationProvider provider;
+=======
+  final PublicationViewModel provider;
+>>>>>>> feature/lab3
 
   const _OverviewBody({required this.provider});
 
@@ -48,7 +76,11 @@ class _OverviewBody extends StatefulWidget {
 class _OverviewBodyState extends State<_OverviewBody> {
   OverviewTimeRange _timeRange = OverviewTimeRange.thisYear;
 
+<<<<<<< HEAD
   PublicationProvider get provider => widget.provider;
+=======
+  PublicationViewModel get provider => widget.provider;
+>>>>>>> feature/lab3
 
   String _peakPeriodLabel(Map<int, int> volume, LandscapePulse pulse) {
     if (volume.isEmpty) return 'N/A';
@@ -351,7 +383,11 @@ class _OverviewBodyState extends State<_OverviewBody> {
 }
 
 class _KeyResearchInsightsSection extends StatelessWidget {
+<<<<<<< HEAD
   final PublicationProvider provider;
+=======
+  final PublicationViewModel provider;
+>>>>>>> feature/lab3
 
   const _KeyResearchInsightsSection({required this.provider});
 

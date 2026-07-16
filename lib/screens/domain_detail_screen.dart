@@ -12,7 +12,7 @@ import '../models/openalex_ranked_entity.dart';
 import '../models/openalex_works_result.dart';
 import '../models/publication.dart';
 import '../models/research_insight.dart';
-import '../providers/publication_provider.dart';
+import '../viewmodels/publication_viewmodel.dart';
 import '../theme/app_theme.dart';
 import '../utils/count_format.dart';
 import '../utils/research_insights.dart';
@@ -67,7 +67,7 @@ class _DomainDetailScreenState extends State<DomainDetailScreen> {
     });
 
     try {
-      final provider = context.read<PublicationProvider>();
+      final provider = context.read<PublicationViewModel>();
       final results = await Future.wait([
         provider.loadConceptTrend(widget.domain),
         provider.loadConceptTopAuthors(widget.domain),
@@ -110,7 +110,7 @@ class _DomainDetailScreenState extends State<DomainDetailScreen> {
     setState(() => _loadingMorePapers = true);
 
     try {
-      final provider = context.read<PublicationProvider>();
+      final provider = context.read<PublicationViewModel>();
       final result = await provider.loadConceptWorksPage(
         widget.domain,
         _papersPage + 1,
@@ -131,6 +131,7 @@ class _DomainDetailScreenState extends State<DomainDetailScreen> {
     }
   }
 
+<<<<<<< HEAD
   Widget _buildTrendChart() {
     if (_trend.isEmpty) {
       return const Text(
@@ -140,6 +141,14 @@ class _DomainDetailScreenState extends State<DomainDetailScreen> {
     }
     return TrendChart(yearlyData: _trend);
   }
+=======
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<PublicationViewModel>();
+    final insight = _insight;
+    final totalCount =
+        _papersTotal > 0 ? _papersTotal : widget.domain.count;
+>>>>>>> feature/lab3
 
   Widget _buildErrorState() {
     return Center(
@@ -490,6 +499,7 @@ class _LegendRow extends StatelessWidget {
   /// Hiển thị chấm màu + tên domain + count + %.
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -530,9 +540,21 @@ class _LegendRow extends StatelessWidget {
                 ),
               ],
             ],
+=======
+    final row = Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+>>>>>>> feature/lab3
           ),
         ),
       ),
     );
+    if (onTap == null) return row;
+    return InkWell(onTap: onTap, child: row);
   }
 }
