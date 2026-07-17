@@ -1,20 +1,14 @@
-<<<<<<< HEAD
+// [Merge resolved] Chọn feature/lab3: bỏ BOM UTF-8, giữ header gốc
 // Tab Overview — UI gốc mockup + bổ sung thầy (KHÔNG xóa phần cũ)
-=======
-﻿// Tab Overview — UI gốc mockup + bổ sung thầy (KHÔNG xóa phần cũ)
->>>>>>> feature/lab3
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/openalex_ranked_entity.dart';
 import '../models/research_insight.dart';
-<<<<<<< HEAD
-import '../providers/publication_provider.dart';
-=======
+// [Merge resolved] Chọn feature/lab3: import viewmodels thay vì providers
 import '../viewmodels/app_navigation_viewmodel.dart';
 import '../viewmodels/publication_viewmodel.dart';
->>>>>>> feature/lab3
 import '../theme/app_theme.dart';
 import '../utils/count_format.dart';
 import '../utils/overview_time_range.dart';
@@ -26,10 +20,7 @@ import 'author_detail_screen.dart';
 import 'detail_screen.dart';
 import 'domain_detail_screen.dart';
 import 'journal_detail_screen.dart';
-<<<<<<< HEAD
-=======
 
->>>>>>> feature/lab3
 /// Overview / Dashboard — màn chính theo mockup JournalAI
 class OverviewScreen extends StatelessWidget {
   const OverviewScreen({super.key});
@@ -41,9 +32,7 @@ class OverviewScreen extends StatelessWidget {
     return SafeArea(
       child: Column(
         children: [
-<<<<<<< HEAD
-          const JournalAiAppBar(showRefresh: true, showBell: true),
-=======
+          // [Merge resolved] Chọn feature/lab3: AppBar với onBellTap callback
           JournalAiAppBar(
             showRefresh: true,
             showBell: true,
@@ -52,7 +41,6 @@ class OverviewScreen extends StatelessWidget {
               context.read<AppNavigationViewModel>().goToTab(3);
             },
           ),
->>>>>>> feature/lab3
           _OverviewBody(provider: provider),
         ],
       ),
@@ -61,11 +49,8 @@ class OverviewScreen extends StatelessWidget {
 }
 
 class _OverviewBody extends StatefulWidget {
-<<<<<<< HEAD
-  final PublicationProvider provider;
-=======
+  // [Merge resolved] Chọn feature/lab3: PublicationViewModel
   final PublicationViewModel provider;
->>>>>>> feature/lab3
 
   const _OverviewBody({required this.provider});
 
@@ -76,11 +61,8 @@ class _OverviewBody extends StatefulWidget {
 class _OverviewBodyState extends State<_OverviewBody> {
   OverviewTimeRange _timeRange = OverviewTimeRange.thisYear;
 
-<<<<<<< HEAD
-  PublicationProvider get provider => widget.provider;
-=======
+  // [Merge resolved] Chọn feature/lab3: PublicationViewModel getter
   PublicationViewModel get provider => widget.provider;
->>>>>>> feature/lab3
 
   String _peakPeriodLabel(Map<int, int> volume, LandscapePulse pulse) {
     if (volume.isEmpty) return 'N/A';
@@ -383,11 +365,8 @@ class _OverviewBodyState extends State<_OverviewBody> {
 }
 
 class _KeyResearchInsightsSection extends StatelessWidget {
-<<<<<<< HEAD
-  final PublicationProvider provider;
-=======
+  // [Merge resolved] Chọn feature/lab3: PublicationViewModel
   final PublicationViewModel provider;
->>>>>>> feature/lab3
 
   const _KeyResearchInsightsSection({required this.provider});
 

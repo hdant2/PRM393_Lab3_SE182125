@@ -2,11 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../models/openalex_impact_profile.dart';
 import '../models/openalex_ranked_entity.dart';
-<<<<<<< HEAD
-import '../providers/publication_provider.dart';
-=======
+// [Merge resolved] Chọn feature/lab3: import viewmodels thay vì providers
 import '../viewmodels/publication_viewmodel.dart';
->>>>>>> feature/lab3
 import '../screens/author_detail_screen.dart';
 import '../screens/domain_detail_screen.dart';
 import '../screens/institution_detail_screen.dart';
@@ -65,11 +62,8 @@ class AnalyticsChartsPanel extends StatelessWidget {
   final AnalyticsChartsData data;
   final String sectionTitle;
   final bool isLoading;
-<<<<<<< HEAD
-  final PublicationProvider? provider;
-=======
+  // [Merge resolved] Chọn feature/lab3: PublicationViewModel
   final PublicationViewModel? provider;
->>>>>>> feature/lab3
 
   const AnalyticsChartsPanel({
     super.key,

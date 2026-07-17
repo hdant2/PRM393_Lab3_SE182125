@@ -50,11 +50,11 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAE1ZHVQt1BnskLNbDA6ScMcaX2LunBr1E',
-    appId: '1:843211294647:android:501b139771cdd1818c4a32',
-    messagingSenderId: '843211294647',
-    projectId: 'korokoro-b6a76',
-    storageBucket: 'korokoro-b6a76.firebasestorage.app',
+    apiKey: 'AIzaSyCAcynRBgyB1pOHRfD5N4NKLKfbZ8RTVF0',
+    appId: '1:243614851294:android:43e315583e2735766e224f',
+    messagingSenderId: '243614851294',
+    projectId: 'prm392-lab3',
+    storageBucket: 'prm392-lab3.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

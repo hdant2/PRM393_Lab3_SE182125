@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.korokoro.journalai"
+    namespace = "com.example.lab2"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,7 +20,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.korokoro.journalai"
+        applicationId = "com.example.lab2"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

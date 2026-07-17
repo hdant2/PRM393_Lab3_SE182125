@@ -5,7 +5,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/publication_provider.dart';
+// [Merge resolved] Chọn feature/lab3: import viewmodels thay vì providers
+import '../viewmodels/publication_viewmodel.dart';
 import '../theme/app_theme.dart';
 import '../utils/research_insights.dart';
 import '../widgets/app_logo.dart';
@@ -21,7 +22,7 @@ class KeywordsTabScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<PublicationProvider>();
+    final provider = context.watch<PublicationViewModel>();
     final trend = provider.yearlyTrendFromOpenAlex;
     final insight = provider.trendInsight;
 

@@ -1,0 +1,13 @@
+version = 1
+
+[[analyzers]]
+name = "dart"
+enabled = true
+
+  [analyzers.meta]
+  environment = ["flutter", "dart"]
+  max_line_length = 120
+
+[[transformers]]
+name = "dartfmt"
+enabled = true

@@ -5,7 +5,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/publication_provider.dart';
+// [Merge resolved] Chọn feature/lab3: import viewmodels thay vì providers
+import '../viewmodels/publication_viewmodel.dart';
 import '../theme/app_theme.dart';
 import '../utils/count_format.dart';
 import '../widgets/app_logo.dart';
@@ -18,7 +19,7 @@ class JournalTabScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<PublicationProvider>();
+    final provider = context.watch<PublicationViewModel>();
     final papers = provider.isGlobalScope
         ? provider.topPapersOpenAlex
         : provider.publications;

@@ -38,7 +38,9 @@ class AuthViewModel extends ChangeNotifier {
         CrashlyticsService.setUser(user?.id, email: user?.email);
         notifyListeners();
       });
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('AuthViewModel bootstrap error: $e');
+    }
     _ready = true;
     notifyListeners();
   }

@@ -21,13 +21,9 @@ class ResearchDomainsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    final provider = context.watch<PublicationProvider>();
-    final domains = provider.dashboardTrendingAreas;
-=======
+    // [Merge resolved] Chọn feature/lab3: PublicationViewModel + trendingAreas
     final provider = context.watch<PublicationViewModel>();
     final domains = provider.trendingAreas;
->>>>>>> feature/lab3
 
     return Scaffold(
       appBar: AppBar(

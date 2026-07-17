@@ -1,42 +1,49 @@
 {
   "project_info": {
-    "project_number": "843211294647",
-    "project_id": "korokoro-b6a76",
-    "storage_bucket": "korokoro-b6a76.firebasestorage.app"
+    "project_number": "243614851294",
+    "project_id": "prm392-lab3",
+    "storage_bucket": "prm392-lab3.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:843211294647:android:501b139771cdd1818c4a32",
+        "mobilesdk_app_id": "1:243614851294:android:43e315583e2735766e224f",
         "android_client_info": {
-          "package_name": "com.korokoro.journalai"
+          "package_name": "com.example.lab2"
         }
       },
       "oauth_client": [
         {
-          "client_id": "843211294647-5tbq9c32cts4hrb87ajie6r7mf5rgudt.apps.googleusercontent.com",
+          "client_id": "243614851294-m11o8sevk8ob77ibfs2fsh7bek014dsu.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.korokoro.journalai",
-            "certificate_hash": "4196d728ee34b4c7ef8c3d3ee1d2ef1bf2eedbf9"
+            "package_name": "com.example.lab2",
+            "certificate_hash": "a670fc52c1dc5f5f7dc03243d1f7691c122de3c7"
           }
         },
         {
-          "client_id": "843211294647-nkdig5n435sc77bp5b71m4pfu59lp5ka.apps.googleusercontent.com",
+          "client_id": "243614851294-hul6tpej1spedpj1o4d6h4qclndkonh1.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAE1ZHVQt1BnskLNbDA6ScMcaX2LunBr1E"
+          "current_key": "AIzaSyCAcynRBgyB1pOHRfD5N4NKLKfbZ8RTVF0"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "843211294647-nkdig5n435sc77bp5b71m4pfu59lp5ka.apps.googleusercontent.com",
+              "client_id": "243614851294-hul6tpej1spedpj1o4d6h4qclndkonh1.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "243614851294-blfi1r9c30kuhe366pko8g961bh9il0h.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.lab2"
+              }
             }
           ]
         }

@@ -4,11 +4,8 @@ import '../models/openalex_ranked_entity.dart';
 import '../models/openalex_works_result.dart';
 import '../models/publication.dart';
 import '../models/research_insight.dart';
-<<<<<<< HEAD
-import '../providers/publication_provider.dart';
-=======
+// [Merge resolved] Chọn feature/lab3: import PublicationViewModel thay vì PublicationProvider
 import '../viewmodels/publication_viewmodel.dart';
->>>>>>> feature/lab3
 import '../theme/app_theme.dart';
 import '../utils/count_format.dart';
 import '../utils/research_insights.dart';
@@ -20,11 +17,8 @@ import 'author_detail_screen.dart';
 /// Màn chi tiết **institution** — filter `authorships.institutions.id`.
 class InstitutionDetailScreen extends StatefulWidget {
   final OpenAlexRankedEntity institution;
-<<<<<<< HEAD
-  final PublicationProvider provider;
-=======
+  // [Merge resolved] Chọn feature/lab3: PublicationViewModel
   final PublicationViewModel provider;
->>>>>>> feature/lab3
 
   const InstitutionDetailScreen({
     super.key,

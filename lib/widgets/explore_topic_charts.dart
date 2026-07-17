@@ -1,21 +1,15 @@
 import 'package:flutter/material.dart';
 
-<<<<<<< HEAD
-import '../providers/publication_provider.dart';
-=======
+// [Merge resolved] Chọn feature/lab3: import viewmodels thay vì providers
 import '../viewmodels/publication_viewmodel.dart';
->>>>>>> feature/lab3
 import '../utils/analytics_year.dart';
 import '../utils/overview_time_range.dart';
 import 'analytics_charts_panel.dart';
 
 /// Biểu đồ đầy đủ cho kết quả tìm kiếm topic trên Explore.
 class ExploreTopicCharts extends StatelessWidget {
-<<<<<<< HEAD
-  final PublicationProvider provider;
-=======
+  // [Merge resolved] Chọn feature/lab3: PublicationViewModel
   final PublicationViewModel provider;
->>>>>>> feature/lab3
   final OverviewTimeRange timeRange;
 
   const ExploreTopicCharts({

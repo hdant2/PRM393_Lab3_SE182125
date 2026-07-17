@@ -1,4 +1,4 @@
-package com.korokoro.journalai;
+package com.example.lab2;
 
 import androidx.test.platform.app.InstrumentationRegistry;
 import org.junit.Test;

@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/openalex_ranked_entity.dart';
-import '../providers/publication_provider.dart';
+// [Merge resolved] Chọn feature/lab3: import viewmodels thay vì providers
+import '../viewmodels/publication_viewmodel.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/keyword_bar_chart.dart';
@@ -17,7 +18,7 @@ class KeywordsOverviewScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<PublicationProvider>();
+    final provider = context.watch<PublicationViewModel>();
     final keywords = provider.dashboardTrendingAreas;
     final emerging = provider.dashboardGrowingTopicsOpenAlex;
 

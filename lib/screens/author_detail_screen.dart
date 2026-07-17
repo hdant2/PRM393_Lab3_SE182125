@@ -19,13 +19,9 @@ import '../widgets/app_logo.dart';
 import '../widgets/entity_detail_sections.dart';
 import '../widgets/ranked_list_widgets.dart';
 import 'journal_detail_screen.dart';
-<<<<<<< HEAD
-
-/// Màn chi tiết **tác giả** — filter `authorships.author.id`.
-/// [provider] truyền vào để giữ scope global/topic khi gọi API.
-=======
+// [Merge resolved] Chọn feature/lab3: thêm import analytics_service
 import '../services/analytics_service.dart';
->>>>>>> feature/lab3
+
 class AuthorDetailScreen extends StatefulWidget {
   final OpenAlexRankedEntity author;
   final PublicationViewModel provider;
@@ -41,7 +37,6 @@ class AuthorDetailScreen extends StatefulWidget {
 }
 
 class _AuthorDetailScreenState extends State<AuthorDetailScreen> {
-  /// Dữ liệu scoped theo author id (+ search topic nếu có)
   List<Publication> _papers = [];
   List<OpenAlexRankedEntity> _journals = [];
   Map<int, int> _trend = {};
@@ -56,13 +51,13 @@ class _AuthorDetailScreenState extends State<AuthorDetailScreen> {
   @override
   void initState() {
     super.initState();
+    // [Merge resolved] Chọn feature/lab3: thêm analytics logging
     AnalyticsService.logViewAuthor(
         authorName: widget.author.name,
       );
     _loadInitial();
   }
 
-  /// Load trang 1 papers + trend + top journals (Future.wait song song).
   Future<void> _loadInitial() async {
     setState(() {
       _loading = true;
@@ -105,7 +100,6 @@ class _AuthorDetailScreenState extends State<AuthorDetailScreen> {
     }
   }
 
-  /// Load thêm 20 bài — append vào _papers.
   Future<void> _loadMore() async {
     if (!_hasMore || _loadingMore) return;
 
@@ -132,7 +126,6 @@ class _AuthorDetailScreenState extends State<AuthorDetailScreen> {
     }
   }
 
-  /// Citations trung bình của các bài đã load (ước lượng trên màn hình).
   double get _avgCitations {
     if (_papers.isEmpty) return 0;
     return _papers.fold<int>(0, (sum, p) => sum + p.citations) / _papers.length;

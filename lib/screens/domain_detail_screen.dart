@@ -36,30 +36,25 @@ class DomainDetailScreen extends StatefulWidget {
   State<DomainDetailScreen> createState() => _DomainDetailScreenState();
 }
 
-/// State local — data load riêng cho domain này, không lưu trong provider global.
 class _DomainDetailScreenState extends State<DomainDetailScreen> {
-  Map<int, int> _trend = {}; // năm → số bài có concept này
+  Map<int, int> _trend = {};
   List<OpenAlexRankedEntity> _authors = [];
   List<OpenAlexRankedEntity> _journals = [];
   List<Publication> _papers = [];
-  int _papersTotal = 0; // meta.count từ API
-  int _papersPage = 0; // trang đã load (20 bài/trang)
+  int _papersTotal = 0;
+  int _papersPage = 0;
   bool _papersHasMore = false;
-  TrendInsight? _insight; // % growth tính từ _trend
+  TrendInsight? _insight;
   bool _loading = true;
   bool _loadingMorePapers = false;
   String? _error;
 
-  /// Tự gọi _load() khi màn hình mở lần đầu.
   @override
   void initState() {
     super.initState();
     _load();
   }
 
-  /// Load song song 4 API scoped filter `concepts.id:{domain.id}`:
-  /// trend, top authors, top journals, papers trang 1.
-  /// Nếu đang search topic → provider tự gắn thêm search=currentTopic.
   Future<void> _load() async {
     setState(() {
       _loading = true;
@@ -103,7 +98,6 @@ class _DomainDetailScreenState extends State<DomainDetailScreen> {
     }
   }
 
-  /// Phân trang papers — gọi loadConceptWorksPage trang tiếp theo, append vào _papers.
   Future<void> _loadMorePapers() async {
     if (!_papersHasMore || _loadingMorePapers) return;
 
@@ -131,7 +125,7 @@ class _DomainDetailScreenState extends State<DomainDetailScreen> {
     }
   }
 
-<<<<<<< HEAD
+  // [Merge resolved] Chọn HEAD: giữ _buildTrendChart method riêng
   Widget _buildTrendChart() {
     if (_trend.isEmpty) {
       return const Text(
@@ -141,14 +135,6 @@ class _DomainDetailScreenState extends State<DomainDetailScreen> {
     }
     return TrendChart(yearlyData: _trend);
   }
-=======
-  @override
-  Widget build(BuildContext context) {
-    final provider = context.watch<PublicationViewModel>();
-    final insight = _insight;
-    final totalCount =
-        _papersTotal > 0 ? _papersTotal : widget.domain.count;
->>>>>>> feature/lab3
 
   Widget _buildErrorState() {
     return Center(
@@ -166,7 +152,7 @@ class _DomainDetailScreenState extends State<DomainDetailScreen> {
   }
 
   Widget _buildLoadedBody(
-    PublicationProvider provider,
+    PublicationViewModel provider,
     int totalCount,
     TrendInsight? insight,
   ) {
@@ -365,7 +351,7 @@ class _DomainDetailScreenState extends State<DomainDetailScreen> {
     );
   }
 
-  Widget _buildBody(PublicationProvider provider, int totalCount) {
+  Widget _buildBody(PublicationViewModel provider, int totalCount) {
     final insight = _insight;
     if (_loading) {
       return const Center(child: CircularProgressIndicator(strokeWidth: 2));
@@ -378,7 +364,8 @@ class _DomainDetailScreenState extends State<DomainDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<PublicationProvider>();
+    // [Merge resolved] Chọn feature/lab3: dùng PublicationViewModel
+    final provider = context.watch<PublicationViewModel>();
     final totalCount =
         _papersTotal > 0 ? _papersTotal : widget.domain.count;
 
@@ -399,7 +386,6 @@ class _DomainDetailScreenState extends State<DomainDetailScreen> {
   }
 }
 
-/// Donut chart phân bổ domain — dùng ở ResearchDomainsScreen.
 class DomainDonutChart extends StatelessWidget {
   final List<OpenAlexRankedEntity> domains;
   final void Function(OpenAlexRankedEntity domain)? onDomainTap;
@@ -412,7 +398,6 @@ class DomainDonutChart extends StatelessWidget {
 
   static const _chartColors = AppColors.chartDonutPalette;
 
-  /// PieChart (fl_chart) + legend 5 domain đầu + % share.
   @override
   Widget build(BuildContext context) {
     if (domains.isEmpty) return const SizedBox.shrink();
@@ -480,7 +465,6 @@ class DomainDonutChart extends StatelessWidget {
   }
 }
 
-/// Một dòng chú thích màu bên cạnh donut chart.
 class _LegendRow extends StatelessWidget {
   final Color color;
   final String name;
@@ -496,10 +480,9 @@ class _LegendRow extends StatelessWidget {
     this.onTap,
   });
 
-  /// Hiển thị chấm màu + tên domain + count + %.
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
+    // [Merge resolved] Chọn HEAD: UI đầy đủ hơn (tên, count, %, chevron)
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -540,21 +523,9 @@ class _LegendRow extends StatelessWidget {
                 ),
               ],
             ],
-=======
-    final row = Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
->>>>>>> feature/lab3
           ),
         ),
       ),
     );
-    if (onTap == null) return row;
-    return InkWell(onTap: onTap, child: row);
   }
 }

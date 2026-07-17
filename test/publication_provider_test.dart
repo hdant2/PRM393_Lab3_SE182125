@@ -7,7 +7,8 @@ import 'package:lab2/models/openalex_ranked_entity.dart';
 import 'package:lab2/models/publication.dart';
 import 'package:lab2/models/publication_author.dart';
 import 'package:lab2/models/research_insight.dart';
-import 'package:lab2/providers/publication_provider.dart';
+// [Merge resolved] Chọn feature/lab3: import viewmodels thay vì providers
+import 'package:lab2/viewmodels/publication_viewmodel.dart';
 import 'package:lab2/services/openalex_config.dart';
 import 'package:lab2/services/openalex_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,11 +22,11 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  group('PublicationProvider computed values', () {
-    late PublicationProvider provider;
+  group('PublicationViewModel computed values', () {
+    late PublicationViewModel provider;
 
     setUp(() {
-      provider = PublicationProvider(config: OpenAlexConfig());
+      provider = PublicationViewModel(config: OpenAlexConfig());
     });
 
     test('trendInsight uses loaded yearly data', () {
@@ -45,7 +46,7 @@ void main() {
 
     test('topicSnapshot is null in global scope', () {
       provider.scope = AnalysisScope.global;
-      provider.currentTopic = PublicationProvider.globalTopicLabel;
+      provider.currentTopic = PublicationViewModel.globalTopicLabel;
 
       expect(provider.topicSnapshot, isNull);
     });
@@ -128,8 +129,8 @@ void main() {
     });
   });
 
-  group('PublicationProvider with mocked OpenAlex', () {
-    late PublicationProvider provider;
+  group('PublicationViewModel with mocked OpenAlex', () {
+    late PublicationViewModel provider;
 
     OpenAlexService fastOpenAlex(http.Client client) {
       return OpenAlexService(
@@ -141,7 +142,7 @@ void main() {
     }
 
     setUp(() {
-      provider = PublicationProvider(
+      provider = PublicationViewModel(
         config: OpenAlexConfig(),
         openAlexService: fastOpenAlex(buildOpenAlexMockClient()),
       );
@@ -292,7 +293,7 @@ void main() {
       final failingClient = MockClient((request) async {
         return http.Response('forbidden', 403);
       });
-      final failingProvider = PublicationProvider(
+      final failingProvider = PublicationViewModel(
         config: OpenAlexConfig(),
         openAlexService: fastOpenAlex(failingClient),
       );

@@ -16,13 +16,9 @@ class TopAuthorsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    final provider = context.watch<PublicationProvider>();
-    final topAuthors = provider.dashboardRankedAuthors;
-=======
+    // [Merge resolved] Chọn feature/lab3: PublicationViewModel + rankedAuthors
     final provider = context.watch<PublicationViewModel>();
     final topAuthors = provider.rankedAuthors;
->>>>>>> feature/lab3
 
     return Scaffold(
       appBar: AppBar(

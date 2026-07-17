@@ -1,15 +1,7 @@
-<<<<<<< HEAD
-// Tab About — API key (UI gốc)
-
+// [Merge resolved] Chọn feature/lab3: bỏ import PublicationProvider cũ, dùng PublicationViewModel
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/publication_provider.dart';
-=======
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
->>>>>>> feature/lab3
 import '../services/openalex_config.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_logo.dart';
@@ -32,38 +24,7 @@ class _AboutScreenState extends State<AboutScreen> {
     super.dispose();
   }
 
-<<<<<<< HEAD
-  Future<void> _saveKey() async {
-    setState(() => _saving = true);
-
-    try {
-      final provider = context.read<PublicationProvider>();
-      await provider.saveOpenAlexApiKey(_keyController.text);
-      if (!mounted) return;
-
-      _keyController.clear();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('OpenAlex API key saved')),
-      );
-
-      await provider.refreshCurrentAnalysis();
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
-
-  Future<void> _clearKey() async {
-    setState(() => _saving = true);
-
-    try {
-      final provider = context.read<PublicationProvider>();
-      await provider.clearOpenAlexApiKey();
-      _keyController.clear();
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Saved API key removed')),
-=======
+  // [Merge resolved] Chọn feature/lab3: _saveKey nhận config param, logic gọn hơn
   Future<void> _saveKey(OpenAlexConfig config) async {
     setState(() => _saving = true);
     try {
@@ -77,7 +38,6 @@ class _AboutScreenState extends State<AboutScreen> {
                 : 'Đã xóa OpenAlex API key',
           ),
         ),
->>>>>>> feature/lab3
       );
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -87,10 +47,7 @@ class _AboutScreenState extends State<AboutScreen> {
   @override
   Widget build(BuildContext context) {
     final config = context.watch<OpenAlexConfig>();
-<<<<<<< HEAD
-    final provider = context.watch<PublicationProvider>();
-=======
->>>>>>> feature/lab3
+    // [Merge resolved] Chọn feature/lab3: bỏ provider, dùng config trực tiếp
 
     return SafeArea(
       child: ListView(
@@ -117,6 +74,7 @@ class _AboutScreenState extends State<AboutScreen> {
             ),
           ),
           const SizedBox(height: 28),
+          // [Merge resolved] Chọn feature/lab3: UI API key section với giao diện tiếng Việt
           MockupCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -189,7 +147,7 @@ class _AboutScreenState extends State<AboutScreen> {
                   children: [
                     Expanded(
                       child: FilledButton(
-                        onPressed: _saving ? null : _saveKey,
+                        onPressed: _saving ? null : () => _saveKey(config),
                         child: _saving
                             ? const SizedBox(
                                 width: 18,
@@ -206,7 +164,10 @@ class _AboutScreenState extends State<AboutScreen> {
                     OutlinedButton(
                       onPressed: _saving || !config.hasSavedKey
                           ? null
-                          : _clearKey,
+                          : () {
+                              _keyController.clear();
+                              _saveKey(config);
+                            },
                       child: const Text('Clear'),
                     ),
                   ],
@@ -228,21 +189,7 @@ class _AboutScreenState extends State<AboutScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-<<<<<<< HEAD
-                const _AboutRow(label: 'Data Source', value: 'OpenAlex API'),
-                _AboutRow(
-                  label: 'Coverage',
-                  value: '2000–${DateTime.now().year}',
-                ),
-                _AboutRow(
-                  label: 'Total Records',
-                  value: provider.hasData
-                      ? provider.formattedTotalOnOpenAlex
-                      : 'Loading from OpenAlex…',
-                ),
-                const _AboutRow(label: 'Version', value: '1.0.0'),
-                const _AboutRow(label: 'Course', value: 'PRM393 Lab 2'),
-=======
+                // [Merge resolved] Chọn feature/lab3: hardcoded values, Lab 3, coverage 2015+
                 _AboutRow(label: 'Data Source', value: 'OpenAlex API'),
                 _AboutRow(
                   label: 'Coverage',
@@ -251,80 +198,6 @@ class _AboutScreenState extends State<AboutScreen> {
                 _AboutRow(label: 'Total Records', value: '134M+ publications'),
                 _AboutRow(label: 'Version', value: '1.0.0'),
                 _AboutRow(label: 'Course', value: 'PRM393 Lab 3'),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          MockupCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'OpenAlex API Key',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Nguồn: ${config.keySourceLabel}'
-                  '${config.hasKey ? ' · đang dùng' : ' · chưa có key'}',
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _keyController,
-                  obscureText: _obscureKey,
-                  decoration: InputDecoration(
-                    hintText: 'Dán API key từ openalex.org/settings/api',
-                    border: const OutlineInputBorder(),
-                    isDense: true,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureKey ? Icons.visibility : Icons.visibility_off,
-                      ),
-                      onPressed: () =>
-                          setState(() => _obscureKey = !_obscureKey),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: FilledButton(
-                        onPressed: _saving ? null : () => _saveKey(config),
-                        child: _saving
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Text('Lưu key'),
-                      ),
-                    ),
-                    if (config.hasSavedKey) ...[
-                      const SizedBox(width: 8),
-                      OutlinedButton(
-                        onPressed: _saving
-                            ? null
-                            : () {
-                                _keyController.clear();
-                                _saveKey(config);
-                              },
-                        child: const Text('Xóa'),
-                      ),
-                    ],
-                  ],
-                ),
->>>>>>> feature/lab3
               ],
             ),
           ),

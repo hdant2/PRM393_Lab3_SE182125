@@ -1,17 +1,15 @@
-/// Firebase project KoroKoro — korokoro-b6a76
+/// Firebase project prm392-lab3
 class FirebaseAuthConfig {
-  static const String projectId = 'korokoro-b6a76';
+  static const String projectId = 'prm392-lab3';
 
-  /// Web client ID — có sau khi bật Authentication → Google rồi tải lại google-services.json.
-  /// Tìm trong JSON: oauth_client có "client_type": 3
+  /// Web client ID — oauth_client có "client_type": 3
   static const String webClientId =
-      '843211294647-nkdig5n435sc77bp5b71m4pfu59lp5ka.apps.googleusercontent.com';
+      '243614851294-hul6tpej1spedpj1o4d6h4qclndkonh1.apps.googleusercontent.com';
 
-  /// Package Android mới — đăng ký trên Firebase KoroKoro (không trùng com.example.lab2).
-  static const String androidPackage = 'com.korokoro.journalai';
+  static const String androidPackage = 'com.example.lab2';
 
   static const String debugSha1 =
-      '41:96:D7:28:EE:34:B4:C7:EF:8C:3D:3E:E1:D2:EF:1B:F2:EE:DB:F9';
+      'A6:70:FC:52:C1:DC:5F:5F:7D:C0:32:43:D1:F7:69:1C:12:2D:E3:C7';
 
   static bool get hasWebClientId => webClientId.isNotEmpty;
 }

@@ -1,8 +1,5 @@
-<<<<<<< HEAD
+// [Merge resolved] Chọn feature/lab3: bỏ BOM UTF-8
 // =============================================================================
-=======
-﻿// =============================================================================
->>>>>>> feature/lab3
 // search_screen.dart — EXPLORE / SEARCH (màn cũ, mở từ Home)
 // =============================================================================
 // Search topic → provider.searchPublications → snapshot + load more 20 bài.
@@ -54,15 +51,11 @@ class _SearchScreenState extends State<SearchScreen> {
       _searchController.text = preset;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-<<<<<<< HEAD
-      context.read<PublicationProvider>().loadRecentSearches();
-=======
+      // [Merge resolved] Chọn feature/lab3: PublicationViewModel
       context.read<PublicationViewModel>().loadRecentSearches();
->>>>>>> feature/lab3
     });
   }
 
-  /// Gọi provider.searchPublications — presetTopic dùng cho chip gợi ý
   Future<void> _search([String? presetTopic]) async {
     if (presetTopic != null) _searchController.text = presetTopic;
     final topic = _searchController.text.trim();
@@ -96,11 +89,8 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildExpandedContent({
-<<<<<<< HEAD
-    required PublicationProvider provider,
-=======
+    // [Merge resolved] Chọn feature/lab3: PublicationViewModel
     required PublicationViewModel provider,
->>>>>>> feature/lab3
     required bool showSearchLoading,
     required bool inTopicScope,
   }) {
@@ -121,14 +111,10 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    final provider = context.watch<PublicationProvider>();
-=======
+    // [Merge resolved] Chọn feature/lab3: PublicationViewModel
     final provider = context.watch<PublicationViewModel>();
->>>>>>> feature/lab3
-    final inTopicScope = !provider.isGlobalScope; // đã search hay chưa
+    final inTopicScope = !provider.isGlobalScope;
     final loadingPapers = provider.isSearchLoading;
-    // Chỉ full-screen loading khi chưa có bài nào (search mới)
     final showSearchLoading =
         loadingPapers && provider.publications.isEmpty;
 
@@ -221,11 +207,8 @@ class _SearchScreenState extends State<SearchScreen> {
 }
 
 class _ExploreResults extends StatefulWidget {
-<<<<<<< HEAD
-  final PublicationProvider provider;
-=======
+  // [Merge resolved] Chọn feature/lab3: PublicationViewModel
   final PublicationViewModel provider;
->>>>>>> feature/lab3
   final bool loadingInsights;
 
   const _ExploreResults({
@@ -240,11 +223,8 @@ class _ExploreResults extends StatefulWidget {
 class _ExploreResultsState extends State<_ExploreResults> {
   OverviewTimeRange _timeRange = OverviewTimeRange.fiveYears;
 
-<<<<<<< HEAD
-  PublicationProvider get provider => widget.provider;
-=======
+  // [Merge resolved] Chọn feature/lab3: PublicationViewModel getter
   PublicationViewModel get provider => widget.provider;
->>>>>>> feature/lab3
 
   TopicSnapshot? _snapshotForRange() {
     if (!provider.isTopicInsightsReady) return null;

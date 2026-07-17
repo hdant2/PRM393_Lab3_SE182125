@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../providers/publication_provider.dart';
+// [Merge resolved] Chọn feature/lab3: import viewmodels thay vì providers
+import '../viewmodels/publication_viewmodel.dart';
 import '../screens/year_detail_screen.dart';
 import '../theme/app_theme.dart';
 import '../utils/research_insights.dart';
@@ -29,7 +30,7 @@ extension TrendMetricX on TrendMetric {
 
 /// Trend chart + momentum + yearly breakdown — chỉ dùng khi đã search topic.
 class TopicTrendAnalyticsPanel extends StatefulWidget {
-  final PublicationProvider provider;
+  final PublicationViewModel provider;
   final bool compact;
 
   const TopicTrendAnalyticsPanel({
@@ -46,7 +47,7 @@ class TopicTrendAnalyticsPanel extends StatefulWidget {
 class _TopicTrendAnalyticsPanelState extends State<TopicTrendAnalyticsPanel> {
   TrendMetric _metric = TrendMetric.publications;
 
-  Map<int, int> _dataForMetric(PublicationProvider provider) {
+  Map<int, int> _dataForMetric(PublicationViewModel provider) {
     switch (_metric) {
       case TrendMetric.publications:
         return provider.yearlyTrendFromOpenAlex;

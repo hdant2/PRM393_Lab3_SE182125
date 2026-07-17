@@ -7,7 +7,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/publication_provider.dart';
+// [Merge resolved] Chọn feature/lab3: import viewmodels thay vì providers
+import '../viewmodels/publication_viewmodel.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/insight_widgets.dart';
@@ -30,7 +31,7 @@ class _HomeTabScreenState extends State<HomeTabScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<PublicationProvider>().loadRecentSearches();
+      context.read<PublicationViewModel>().loadRecentSearches();
     });
   }
 
@@ -45,7 +46,7 @@ class _HomeTabScreenState extends State<HomeTabScreen> {
     final topic = _searchController.text.trim();
     if (topic.isEmpty) return;
 
-    final provider = context.read<PublicationProvider>();
+    final provider = context.read<PublicationViewModel>();
     await provider.searchPublications(topic);
     if (!mounted) return;
 
@@ -57,7 +58,7 @@ class _HomeTabScreenState extends State<HomeTabScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<PublicationProvider>();
+    final provider = context.watch<PublicationViewModel>();
     final insight = provider.trendInsight;
     final domains = provider.trendingAreas;
 

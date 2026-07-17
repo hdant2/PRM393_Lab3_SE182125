@@ -1,27 +1,18 @@
-<<<<<<< HEAD
+// [Merge resolved] Chọn feature/lab3: bỏ comment header cũ
 // =============================================================================
 // top_papers_screen.dart — TOP INFLUENTIAL PAPERS (màn classic)
 // =============================================================================
 
-=======
->>>>>>> feature/lab3
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
 
-
-
-<<<<<<< HEAD
-import '../providers/publication_provider.dart';
-=======
+// [Merge resolved] Chọn feature/lab3: import viewmodels thay vì providers
 import '../viewmodels/publication_viewmodel.dart';
->>>>>>> feature/lab3
 
 import '../utils/count_format.dart';
 
 import 'detail_screen.dart';
-
-
 
 /// 4.4 Top Influential Papers
 
@@ -35,15 +26,10 @@ class TopPapersScreen extends StatelessWidget {
 
   Widget build(BuildContext context) {
 
-<<<<<<< HEAD
-    final provider = context.watch<PublicationProvider>();
-
-    final topPapers = provider.dashboardTopPapersOpenAlex;
-=======
+    // [Merge resolved] Chọn feature/lab3: PublicationViewModel + topPapersOpenAlex
     final provider = context.watch<PublicationViewModel>();
 
     final topPapers = provider.topPapersOpenAlex;
->>>>>>> feature/lab3
 
 
 
@@ -132,4 +118,3 @@ class TopPapersScreen extends StatelessWidget {
   }
 
 }
-

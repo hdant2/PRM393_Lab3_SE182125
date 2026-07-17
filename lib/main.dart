@@ -16,12 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-<<<<<<< HEAD
-import 'providers/app_navigation_provider.dart';
-import 'providers/publication_provider.dart';
-import 'screens/splash_screen.dart';
-import 'services/openalex_config.dart';
-=======
+// [Merge resolved] Chọn feature/lab3: import từ viewmodels/ thay vì providers/
 import 'firebase_options.dart';
 import 'services/crashlytics_service.dart';
 import 'services/messaging_service.dart';
@@ -31,27 +26,10 @@ import 'services/analytics_service.dart';
 import 'viewmodels/app_navigation_viewmodel.dart';
 import 'viewmodels/publication_viewmodel.dart';
 import 'viewmodels/auth_viewmodel.dart';
->>>>>>> feature/lab3
 import 'theme/app_theme.dart';
 import 'screens/auth_gate.dart';
 
-<<<<<<< HEAD
-Future<void> main() async {
-  // Bắt buộc trước runApp khi dùng async (SharedPreferences, v.v.)
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Tạo object lưu OpenAlex API key (About tab hoặc dart-define lúc build)
-  final openAlexConfig = OpenAlexConfig();
-  await openAlexConfig.load();
-
-  runApp(MyApp(openAlexConfig: openAlexConfig));
-}
-
-class MyApp extends StatelessWidget {
-  final OpenAlexConfig openAlexConfig;
-
-  const MyApp({super.key, required this.openAlexConfig});
-=======
+// [Merge resolved] Chọn feature/lab3: main() đơn giản hơn, MyApp là StatefulWidget
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   debugPrint('=== MAIN START ===');
@@ -60,7 +38,6 @@ void main() {
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
->>>>>>> feature/lab3
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -96,6 +73,8 @@ class _MyAppState extends State<MyApp> {
       try {
         await RemoteConfigService.init();
       } catch (_) {}
+      // Khởi tạo Analytics SAU khi Firebase.initializeApp() xong
+      AnalyticsService.init();
     } catch (e) {
       debugPrint('Firebase init failed: $e');
     }
@@ -110,33 +89,21 @@ class _MyAppState extends State<MyApp> {
     // MultiProvider = "kho chung" state cho cả app, mọi màn hình đọc được
     return MultiProvider(
       providers: [
-<<<<<<< HEAD
-        // API key — About screen ghi, OpenAlexService đọc
-        ChangeNotifierProvider<OpenAlexConfig>.value(value: openAlexConfig),
-
-        // State chính: bài báo, trend, search, metrics OpenAlex
-        ChangeNotifierProvider(
-          create: (context) => PublicationProvider(
-            config: context.read<OpenAlexConfig>(),
-          ),
-        ),
-
-        // Tab bottom nav đang chọn tab nào (0–3)
-        ChangeNotifierProvider(create: (_) => AppNavigationProvider()),
-=======
+        // [Merge resolved] Chọn feature/lab3: providers đầy đủ hơn (4 providers thay vì 3)
         ChangeNotifierProvider.value(value: _openAlexConfig),
         ChangeNotifierProvider(
           create: (_) => PublicationViewModel(config: _openAlexConfig),
         ),
         ChangeNotifierProvider(create: (_) => AppNavigationViewModel()),
         ChangeNotifierProvider.value(value: _authViewModel),
->>>>>>> feature/lab3
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'JournalAI',
         theme: buildAppTheme(),
-        navigatorObservers: [AnalyticsService.getObserver()],
+        navigatorObservers: [
+          if (AnalyticsService.getObserver() case final obs?) obs,
+        ],
         home: !_appReady
             ? const Scaffold(
                 body: Center(

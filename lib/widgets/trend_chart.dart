@@ -4,12 +4,10 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../utils/count_format.dart';
 import '../utils/overview_time_range.dart';
-<<<<<<< HEAD
-=======
+// [Merge resolved] Chọn feature/lab3: Thêm import cho chart axis layout, touch banner, scrollable chart frame
 import 'chart_axis_layout.dart';
 import 'chart_touch_banner.dart';
 import 'scrollable_chart_frame.dart';
->>>>>>> feature/lab3
 
 class _TrendChartScale {
   const _TrendChartScale({
@@ -38,21 +36,15 @@ class _TrendChartScale {
 
   String labelForIndex(int index) {
     if (index < 0 || index >= years.length) return '';
-<<<<<<< HEAD
-    return isMonthly ? monthShortLabel(years[index]) : '${years[index]}';
-=======
+    // [Merge resolved] Chọn feature/lab3: Dùng if-return thay vì ternary
     if (isMonthly) return monthShortLabel(years[index]);
     return '${years[index]}';
->>>>>>> feature/lab3
   }
 }
 
 /// Line chart — publication trend with optional citation overlay (normalized).
-<<<<<<< HEAD
-class TrendChart extends StatelessWidget {
-=======
+// [Merge resolved] Chọn feature/lab3: StatefulWidget với _selectedIndex
 class TrendChart extends StatefulWidget {
->>>>>>> feature/lab3
   final Map<int, int> yearlyData;
 
   /// Second series (e.g. citations by year) — dashed line, shape-normalized.
@@ -67,10 +59,7 @@ class TrendChart extends StatefulWidget {
   });
 
   @override
-<<<<<<< HEAD
-  Widget build(BuildContext context) {
-    final scale = _buildScale(yearlyData, overlayYearlyData);
-=======
+  // [Merge resolved] Chọn feature/lab3: Tạo _TrendChartState với _selectedIndex
   State<TrendChart> createState() => _TrendChartState();
 }
 
@@ -79,8 +68,8 @@ class _TrendChartState extends State<TrendChart> {
 
   @override
   Widget build(BuildContext context) {
+    // [Merge resolved] Chọn feature/lab3: Sử dụng widget.yearlyData, widget.overlayYearlyData
     final scale = _buildScale(widget.yearlyData, widget.overlayYearlyData);
->>>>>>> feature/lab3
     if (scale == null) {
       return const SizedBox(
         height: 220,
@@ -93,11 +82,7 @@ class _TrendChartState extends State<TrendChart> {
       );
     }
 
-<<<<<<< HEAD
-    return SizedBox(
-      height: 280,
-      child: LineChart(_buildChartData(scale)),
-=======
+    // [Merge resolved] Chọn feature/lab3: ScrollableChartFrame, ChartTouchBanner, touch interaction
     final scrollable = ScrollableChartFrame.needsScroll(
       context,
       pointCount: scale.years.length,
@@ -156,7 +141,6 @@ class _TrendChartState extends State<TrendChart> {
     return (
       year,
       overlay != null ? '$papers papers · $overlay citations' : '$papers papers',
->>>>>>> feature/lab3
     );
   }
 
@@ -173,23 +157,14 @@ class _TrendChartState extends State<TrendChart> {
     for (var i = 0; i < years.length; i++) {
       spots.add(FlSpot(i.toDouble(), data[years[i]]!.toDouble()));
     }
-<<<<<<< HEAD
 
-    final maxY = data.values.reduce((a, b) => a > b ? a : b).toDouble();
-    final minY = data.values.reduce((a, b) => a < b ? a : b).toDouble();
-    final yPadding = (maxY - minY) * 0.15;
-    final chartMaxY = maxY + (yPadding > 0 ? yPadding : maxY * 0.1);
-    final chartMinY = (minY - yPadding).clamp(0, minY).toDouble();
-
-=======
-
+    // [Merge resolved] Chọn feature/lab3: yPadding=0.12, chartMinY=0.0
     final maxY = data.values.reduce((a, b) => a > b ? a : b).toDouble();
     final minY = data.values.reduce((a, b) => a < b ? a : b).toDouble();
     final yPadding = (maxY - minY) * 0.12;
     final chartMaxY = maxY + (yPadding > 0 ? yPadding : maxY * 0.1);
     const chartMinY = 0.0;
 
->>>>>>> feature/lab3
     final overlayValues = <int>[];
     final overlaySpots = <FlSpot>[];
     if (overlay != null && overlay.isNotEmpty) {
@@ -219,30 +194,19 @@ class _TrendChartState extends State<TrendChart> {
       chartMinY: chartMinY,
       chartMaxY: chartMaxY,
       yInterval: _niceInterval(chartMaxY - chartMinY),
-<<<<<<< HEAD
-      labelInterval: isMonthly
-          ? (years.length <= 6 ? 1 : 2)
-          : (years.length <= 6 ? 1 : (years.length / 5).ceil()),
-      isMonthly: isMonthly,
-=======
+      // [Merge resolved] Chọn feature/lab3: labelInterval đơn giản hơn
       labelInterval: widget.isMonthly ? (years.length > 8 ? 2 : 1) : 1,
       isMonthly: widget.isMonthly,
->>>>>>> feature/lab3
     );
   }
 
   LineChartData _buildChartData(_TrendChartScale scale) {
-<<<<<<< HEAD
-    return LineChartData(
-      minX: 0,
-      maxX: (scale.years.length - 1).toDouble(),
-=======
+    // [Merge resolved] Chọn feature/lab3: trailingPad, clipData
     final trailingPad = widget.isMonthly ? 0.0 : 0.55;
     return LineChartData(
       clipData: const FlClipData.none(),
       minX: 0,
       maxX: (scale.years.length - 1).toDouble() + trailingPad,
->>>>>>> feature/lab3
       minY: scale.chartMinY,
       maxY: scale.chartMaxY,
       gridData: FlGridData(
@@ -255,40 +219,7 @@ class _TrendChartState extends State<TrendChart> {
       ),
       borderData: FlBorderData(show: false),
       lineTouchData: LineTouchData(
-<<<<<<< HEAD
-        touchTooltipData: LineTouchTooltipData(
-          getTooltipItems: (spots) {
-            return spots.map((spot) {
-              final index = spot.x.toInt();
-              if (index < 0 || index >= scale.years.length) {
-                return null;
-              }
-              final year = scale.years[index];
-              final label = scale.labelForIndex(index);
-              final isOverlay = spot.barIndex == 1;
-              if (isOverlay) {
-                if (index >= scale.overlayValues.length) return null;
-                return LineTooltipItem(
-                  '$label citations\n${formatOpenAlexCount(scale.overlayValues[index])}',
-                  const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                );
-              }
-              return LineTooltipItem(
-                '$label papers\n${formatOpenAlexCount(spot.y.toInt())}',
-                const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              );
-            }).toList();
-          },
-        ),
-=======
+        // [Merge resolved] Chọn feature/lab3: touchCallback thay vì touchTooltipData
         handleBuiltInTouches: false,
         touchCallback: (event, response) {
           if (!event.isInterestedForInteractions) return;
@@ -301,7 +232,6 @@ class _TrendChartState extends State<TrendChart> {
           if (index < 0 || index >= scale.years.length) return;
           setState(() => _selectedIndex = index);
         },
->>>>>>> feature/lab3
       ),
       lineBarsData: [
         LineChartBarData(
@@ -324,14 +254,7 @@ class _TrendChartState extends State<TrendChart> {
           ),
           dotData: FlDotData(
             show: scale.years.length <= 12,
-<<<<<<< HEAD
-            getDotPainter: (spot, percent, bar, index) => FlDotCirclePainter(
-              radius: 4,
-              color: AppColors.chartPrimary,
-              strokeWidth: 1.5,
-              strokeColor: Colors.white,
-            ),
-=======
+            // [Merge resolved] Chọn feature/lab3: Selected dot highlighting
             getDotPainter: (spot, percent, bar, index) {
               final selected = _selectedIndex == index;
               return FlDotCirclePainter(
@@ -341,7 +264,6 @@ class _TrendChartState extends State<TrendChart> {
                 strokeColor: Colors.white,
               );
             },
->>>>>>> feature/lab3
           ),
         ),
         if (scale.hasOverlay)
@@ -370,11 +292,8 @@ class _TrendChartState extends State<TrendChart> {
       bottomTitles: AxisTitles(
         sideTitles: SideTitles(
           showTitles: true,
-<<<<<<< HEAD
-          reservedSize: 30,
-=======
+          // [Merge resolved] Chọn feature/lab3: reservedSize=40
           reservedSize: 40,
->>>>>>> feature/lab3
           interval: 1,
           getTitlesWidget: (value, meta) {
             final index = value.toInt();
@@ -383,15 +302,7 @@ class _TrendChartState extends State<TrendChart> {
                 index % scale.labelInterval != 0) {
               return const SizedBox.shrink();
             }
-<<<<<<< HEAD
-            return Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                scale.labelForIndex(index),
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 11,
-=======
+            // [Merge resolved] Chọn feature/lab3: Edge handling, chartAxisLabelAlign, overflow
             final isEdge = index == 0 || index == scale.years.length - 1;
             return Padding(
               padding: const EdgeInsets.only(top: 8),
@@ -410,7 +321,6 @@ class _TrendChartState extends State<TrendChart> {
                     color: AppColors.textSecondary,
                     fontSize: 10,
                   ),
->>>>>>> feature/lab3
                 ),
               ),
             );
@@ -420,11 +330,8 @@ class _TrendChartState extends State<TrendChart> {
       leftTitles: AxisTitles(
         sideTitles: SideTitles(
           showTitles: true,
-<<<<<<< HEAD
-          reservedSize: 44,
-=======
+          // [Merge resolved] Chọn feature/lab3: reservedSize dùng ScrollableChartFrame.leftAxisSize
           reservedSize: ScrollableChartFrame.leftAxisSize + 4,
->>>>>>> feature/lab3
           interval: scale.yInterval,
           getTitlesWidget: (value, meta) {
             if (value < scale.chartMinY || value > scale.chartMaxY) {
