@@ -95,7 +95,6 @@ class PublicationViewModel extends ChangeNotifier {
   Map<int, int> _dashboardYearlyTrendFromOpenAlex = {};
   Map<int, int> _dashboardMonthlyTrendFromOpenAlex = {};
   Map<int, int> _dashboardCitationsByYearOpenAlex = {};
-  Map<int, int> _dashboardAvgCitationsByYearOpenAlex = {};
   List<OpenAlexRankedEntity> _dashboardTopAuthorsOpenAlex = [];
   List<OpenAlexRankedEntity> _dashboardTopJournalsOpenAlex = [];
   List<OpenAlexRankedEntity> _dashboardTopResearchAreasOpenAlex = [];
@@ -738,8 +737,6 @@ class PublicationViewModel extends ChangeNotifier {
         Map<int, int>.from(monthlyTrendFromOpenAlex);
     _dashboardCitationsByYearOpenAlex =
         Map<int, int>.from(citationsByYearOpenAlex);
-    _dashboardAvgCitationsByYearOpenAlex =
-        Map<int, int>.from(avgCitationsByYearOpenAlex);
     _dashboardTopAuthorsOpenAlex = List<OpenAlexRankedEntity>.from(
       topAuthorsOpenAlex,
     );
@@ -779,7 +776,6 @@ class PublicationViewModel extends ChangeNotifier {
     _dashboardYearlyTrendFromOpenAlex = {};
     _dashboardMonthlyTrendFromOpenAlex = {};
     _dashboardCitationsByYearOpenAlex = {};
-    _dashboardAvgCitationsByYearOpenAlex = {};
     _dashboardTopAuthorsOpenAlex = [];
     _dashboardTopJournalsOpenAlex = [];
     _dashboardTopResearchAreasOpenAlex = [];

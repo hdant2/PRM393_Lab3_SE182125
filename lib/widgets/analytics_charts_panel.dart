@@ -82,282 +82,341 @@ class AnalyticsChartsPanel extends StatelessWidget {
       );
     }
 
-    final citationTrend = data.citationTrend;
-    final rangeLabel = data.rangeLabel;
-    final isMonthly = data.isMonthly;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildHeader(),
+        const SizedBox(height: 10),
+        _buildYearVolumeCard(context),
+        const SizedBox(height: 14),
+        _buildTrendCard(),
+        const SizedBox(height: 14),
+        if (data.openAccessCount + data.closedAccessCount > 0)
+          _buildOpenAccessCard(),
+        if (data.openAccessCount + data.closedAccessCount > 0)
+          const SizedBox(height: 14),
+        if (data.topics.isNotEmpty) _buildTopicsCard(context),
+        if (data.topics.isNotEmpty) const SizedBox(height: 14),
+        if (data.institutions.isNotEmpty) _buildInstitutionsCard(context),
+        if (data.institutions.isNotEmpty) const SizedBox(height: 14),
+        if (data.worksByType.isNotEmpty) _buildWorksByTypeCard(),
+        if (data.worksByType.isNotEmpty) const SizedBox(height: 14),
+        if (data.journals.isNotEmpty) _buildJournalsCard(context),
+        if (data.journals.isNotEmpty) const SizedBox(height: 14),
+        if (data.authors.isNotEmpty) _buildAuthorsCard(context),
+        if (data.authors.isNotEmpty) const SizedBox(height: 14),
+        if (data.authorsByCitations.length >= 2)
+          _buildAuthorsByCitationsCard(context),
+        if (data.authorsByCitations.length >= 2)
+          const SizedBox(height: 14),
+        if (data.institutionsByCitations.length >= 2)
+          _buildInstitutionsByCitationsCard(context),
+        if (data.institutionsByCitations.length >= 2)
+          const SizedBox(height: 14),
+        if (data.countries.isNotEmpty) _buildCountriesCard(),
+        if (data.countries.isNotEmpty) const SizedBox(height: 14),
+        if (data.authorsByHIndex.length >= 2) _buildHIndexCard(context),
+        if (data.authorsByHIndex.length >= 2)
+          const SizedBox(height: 14),
+        if (data.authorImpactProfiles.length >= 3)
+          _buildScatterCard(context),
+        if (data.authorImpactProfiles.length >= 3)
+          const SizedBox(height: 14),
+        if (data.topics.length >= 2) _buildDomainsCard(context),
+      ],
+    );
+  }
 
+  Widget _buildHeader() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _sectionHeader(sectionTitle),
         const SizedBox(height: 4),
         Text(
-          'Khoảng: $rangeLabel · OpenAlex',
+          'Khoảng: ${data.rangeLabel} · OpenAlex',
           style: const TextStyle(
             color: AppColors.textTertiary,
             fontSize: 11,
           ),
         ),
-        const SizedBox(height: 10),
-        _chartCard(
-          title: isMonthly ? 'Month' : 'Year',
-          subtitle: isMonthly
-              ? 'Publication volume by month · $rangeLabel'
-              : 'Publication volume by year · $rangeLabel',
-          child: YearVolumeBarChart(
-            yearlyData: data.volumeTrend,
-            isMonthly: isMonthly,
-            onYearTap: provider == null || isMonthly
-                ? null
-                : (year) => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => YearDetailScreen(
-                          year: year,
-                          provider: provider!,
-                        ),
-                      ),
-                    ),
-          ),
-        ),
-        const SizedBox(height: 14),
-        _chartCard(
-          title: 'Publication Trend',
-          subtitle: isMonthly
-              ? 'Monthly volume · $rangeLabel'
-              : 'Volume with citation overlay · $rangeLabel',
-          child: TrendChart(
-            yearlyData: data.volumeTrend,
-            overlayYearlyData:
-                citationTrend == null || citationTrend.isEmpty
-                    ? null
-                    : citationTrend,
-            isMonthly: isMonthly,
-          ),
-        ),
-        const SizedBox(height: 14),
-        if (data.openAccessCount + data.closedAccessCount > 0)
-          _chartCard(
-            title: 'Open Access',
-            subtitle: 'Share of works in scope',
-            child: OpenAccessDonutChart(
-              openAccessCount: data.openAccessCount,
-              closedCount: data.closedAccessCount,
-            ),
-          ),
-        if (data.openAccessCount + data.closedAccessCount > 0)
-          const SizedBox(height: 14),
-        if (data.topics.isNotEmpty)
-          MockupCard(
-            child: ExpandableRankedChart(
-              title: 'Topic',
-              subtitle: 'Top research topics',
-              items: _toEntries(data.topics),
-              chartBuilder: (items) => KeywordBarChart(
-                title: '',
-                showFooter: false,
-                items: items,
-                onItemTap: (name) => _openTopicByName(context, name),
-              ),
-            ),
-          ),
-        if (data.topics.isNotEmpty) const SizedBox(height: 14),
-        if (data.institutions.isNotEmpty)
-          MockupCard(
-            child: ExpandableRankedChart(
-              title: 'Institution',
-              subtitle: 'Top publishing institutions',
-              items: _toEntries(data.institutions),
-              chartBuilder: (items) => KeywordBarChart(
-                title: '',
-                showFooter: false,
-                items: items,
-                onItemTap: provider == null
-                    ? null
-                    : (name) => _openInstitutionByName(context, name),
-              ),
-            ),
-          ),
-        if (data.institutions.isNotEmpty) const SizedBox(height: 14),
-        if (data.worksByType.isNotEmpty)
-          MockupCard(
-            child: ExpandableRankedChart(
-              title: 'Type',
-              subtitle: 'Works by document type',
-              items: data.worksByType
-                  .map((e) => MapEntry(_formatTypeName(e.name), e.count))
-                  .toList(),
-              chartBuilder: (items) => KeywordBarChart(
-                title: '',
-                showFooter: false,
-                items: items,
-              ),
-            ),
-          ),
-        if (data.worksByType.isNotEmpty) const SizedBox(height: 14),
-        if (data.journals.isNotEmpty)
-          MockupCard(
-            child: ExpandableRankedChart(
-              title: 'Publication Sources',
-              subtitle: 'Top journals and venues',
-              items: _toEntries(data.journals),
-              chartBuilder: (items) => JournalBarChart(
-                showHeader: false,
-                journals: items,
-                onJournalTap: provider == null
-                    ? null
-                    : (name) => _openJournalByName(context, name),
-              ),
-            ),
-          ),
-        if (data.journals.isNotEmpty) const SizedBox(height: 14),
-        if (data.authors.isNotEmpty)
-          MockupCard(
-            child: ExpandableRankedChart(
-              title: 'Research Leaders',
-              subtitle: 'Authors with most publications',
-              items: _toEntries(data.authors),
-              chartBuilder: (items) => KeywordBarChart(
-                title: '',
-                showFooter: false,
-                items: items,
-                onItemTap: provider == null
-                    ? null
-                    : (name) => _openAuthorByName(context, name),
-              ),
-            ),
-          ),
-        if (data.authors.isNotEmpty) const SizedBox(height: 14),
-        if (data.authorsByCitations.length >= 2)
-          MockupCard(
-            child: ExpandableRankedChart(
-              title: 'Citation Leaders',
-              subtitle: data.topics.isNotEmpty
-                  ? 'Authors in matched topics · career citations'
-                  : 'Authors ranked by citations in search results',
-              items: _toEntries(data.authorsByCitations),
-              chartBuilder: (items) => KeywordBarChart(
-                title: '',
-                showFooter: false,
-                items: items,
-                valueLabel: 'citations',
-                onItemTap: provider == null
-                    ? null
-                    : (name) => _openAuthorByName(
-                          context,
-                          name,
-                          data.authorsByCitations,
-                        ),
-              ),
-            ),
-          ),
-        if (data.authorsByCitations.length >= 2) const SizedBox(height: 14),
-        if (data.institutionsByCitations.length >= 2)
-          MockupCard(
-            child: ExpandableRankedChart(
-              title: 'Institution Impact',
-              subtitle: 'Institutions ranked by total citations',
-              items: _toEntries(data.institutionsByCitations),
-              chartBuilder: (items) => KeywordBarChart(
-                title: '',
-                showFooter: false,
-                items: items,
-                valueLabel: 'citations',
-                onItemTap: provider == null
-                    ? null
-                    : (name) => _openInstitutionByName(
-                          context,
-                          name,
-                          data.institutionsByCitations,
-                        ),
-              ),
-            ),
-          ),
-        if (data.institutionsByCitations.length >= 2) const SizedBox(height: 14),
-        if (data.countries.isNotEmpty)
-          MockupCard(
-            child: ExpandableRankedChart(
-              title: 'Countries',
-              subtitle: 'Works by author country in scope',
-              items: _toEntries(data.countries),
-              chartBuilder: (items) => KeywordBarChart(
-                title: '',
-                showFooter: false,
-                items: items,
-              ),
-            ),
-          ),
-        if (data.countries.isNotEmpty) const SizedBox(height: 14),
-        if (data.authorsByHIndex.length >= 2)
-          MockupCard(
-            child: ExpandableRankedChart(
-              title: 'H-Index Leaders',
-              subtitle: data.topics.isNotEmpty
-                  ? 'Career h-index · authors in matched topics'
-                  : 'Career h-index from OpenAlex summary_stats',
-              items: _toEntries(data.authorsByHIndex),
-              chartBuilder: (items) => KeywordBarChart(
-                title: '',
-                showFooter: false,
-                items: items,
-                valueLabel: 'h-index',
-                onItemTap: provider == null
-                    ? null
-                    : (name) => _openAuthorByName(
-                          context,
-                          name,
-                          data.authorsByHIndex,
-                        ),
-              ),
-            ),
-          ),
-        if (data.authorsByHIndex.length >= 2) const SizedBox(height: 14),
-        if (data.authorImpactProfiles.length >= 3)
-          _chartCard(
-            title: 'Productivity vs Impact',
-            subtitle: 'Works count vs total citations · tap a point',
-            child: ProductivityScatterChart(
-              profiles: data.authorImpactProfiles,
-              onPointTap: provider == null
-                  ? null
-                  : (profile) => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => AuthorDetailScreen(
-                            author: OpenAlexRankedEntity(
-                              id: profile.id,
-                              name: profile.name,
-                              count: profile.worksCount,
-                            ),
-                            provider: provider!,
-                          ),
-                        ),
-                      ),
-            ),
-          ),
-        if (data.authorImpactProfiles.length >= 3)
-          const SizedBox(height: 14),
-        if (data.topics.length >= 2)
-          MockupCard(
-            child: ExpandableRankedChart(
-              title: 'Research Domains',
-              subtitle: 'Distribution among top fields',
-              items: _toEntries(data.topics),
-              chartBuilder: (items) => DomainDonutChart(
-                domains: _domainsForEntries(items),
-                onDomainTap: provider == null
-                    ? null
-                    : (domain) => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                DomainDetailScreen(domain: domain),
-                          ),
-                        ),
-              ),
-            ),
-          ),
       ],
+    );
+  }
+
+  Widget _buildYearVolumeCard(BuildContext context) {
+    final isMonthly = data.isMonthly;
+    return _chartCard(
+      title: isMonthly ? 'Month' : 'Year',
+      subtitle: isMonthly
+          ? 'Publication volume by month · ${data.rangeLabel}'
+          : 'Publication volume by year · ${data.rangeLabel}',
+      child: YearVolumeBarChart(
+        yearlyData: data.volumeTrend,
+        isMonthly: isMonthly,
+        onYearTap: provider == null || isMonthly
+            ? null
+            : (year) => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => YearDetailScreen(
+                      year: year,
+                      provider: provider!,
+                    ),
+                  ),
+                ),
+      ),
+    );
+  }
+
+  Widget _buildTrendCard() {
+    final citationTrend = data.citationTrend;
+    final isMonthly = data.isMonthly;
+    return _chartCard(
+      title: 'Publication Trend',
+      subtitle: isMonthly
+          ? 'Monthly volume · ${data.rangeLabel}'
+          : 'Volume with citation overlay · ${data.rangeLabel}',
+      child: TrendChart(
+        yearlyData: data.volumeTrend,
+        overlayYearlyData:
+            citationTrend == null || citationTrend.isEmpty
+                ? null
+                : citationTrend,
+        isMonthly: isMonthly,
+      ),
+    );
+  }
+
+  Widget _buildOpenAccessCard() {
+    return _chartCard(
+      title: 'Open Access',
+      subtitle: 'Share of works in scope',
+      child: OpenAccessDonutChart(
+        openAccessCount: data.openAccessCount,
+        closedCount: data.closedAccessCount,
+      ),
+    );
+  }
+
+  Widget _buildTopicsCard(BuildContext context) {
+    return MockupCard(
+      child: ExpandableRankedChart(
+        title: 'Topic',
+        subtitle: 'Top research topics',
+        items: _toEntries(data.topics),
+        chartBuilder: (items) => KeywordBarChart(
+          title: '',
+          showFooter: false,
+          items: items,
+          onItemTap: (name) => _openTopicByName(context, name),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInstitutionsCard(BuildContext context) {
+    return MockupCard(
+      child: ExpandableRankedChart(
+        title: 'Institution',
+        subtitle: 'Top publishing institutions',
+        items: _toEntries(data.institutions),
+        chartBuilder: (items) => KeywordBarChart(
+          title: '',
+          showFooter: false,
+          items: items,
+          onItemTap: provider == null
+              ? null
+              : (name) => _openInstitutionByName(context, name),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWorksByTypeCard() {
+    return MockupCard(
+      child: ExpandableRankedChart(
+        title: 'Type',
+        subtitle: 'Works by document type',
+        items: data.worksByType
+            .map((e) => MapEntry(_formatTypeName(e.name), e.count))
+            .toList(),
+        chartBuilder: (items) => KeywordBarChart(
+          title: '',
+          showFooter: false,
+          items: items,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildJournalsCard(BuildContext context) {
+    return MockupCard(
+      child: ExpandableRankedChart(
+        title: 'Publication Sources',
+        subtitle: 'Top journals and venues',
+        items: _toEntries(data.journals),
+        chartBuilder: (items) => JournalBarChart(
+          showHeader: false,
+          journals: items,
+          onJournalTap: provider == null
+              ? null
+              : (name) => _openJournalByName(context, name),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAuthorsCard(BuildContext context) {
+    return MockupCard(
+      child: ExpandableRankedChart(
+        title: 'Research Leaders',
+        subtitle: 'Authors with most publications',
+        items: _toEntries(data.authors),
+        chartBuilder: (items) => KeywordBarChart(
+          title: '',
+          showFooter: false,
+          items: items,
+          onItemTap: provider == null
+              ? null
+              : (name) => _openAuthorByName(context, name),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAuthorsByCitationsCard(BuildContext context) {
+    return MockupCard(
+      child: ExpandableRankedChart(
+        title: 'Citation Leaders',
+        subtitle: data.topics.isNotEmpty
+            ? 'Authors in matched topics · career citations'
+            : 'Authors ranked by citations in search results',
+        items: _toEntries(data.authorsByCitations),
+        chartBuilder: (items) => KeywordBarChart(
+          title: '',
+          showFooter: false,
+          items: items,
+          valueLabel: 'citations',
+          onItemTap: provider == null
+              ? null
+              : (name) => _openAuthorByName(
+                    context,
+                    name,
+                    data.authorsByCitations,
+                  ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInstitutionsByCitationsCard(BuildContext context) {
+    return MockupCard(
+      child: ExpandableRankedChart(
+        title: 'Institution Impact',
+        subtitle: 'Institutions ranked by total citations',
+        items: _toEntries(data.institutionsByCitations),
+        chartBuilder: (items) => KeywordBarChart(
+          title: '',
+          showFooter: false,
+          items: items,
+          valueLabel: 'citations',
+          onItemTap: provider == null
+              ? null
+              : (name) => _openInstitutionByName(
+                    context,
+                    name,
+                    data.institutionsByCitations,
+                  ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCountriesCard() {
+    return MockupCard(
+      child: ExpandableRankedChart(
+        title: 'Countries',
+        subtitle: 'Works by author country in scope',
+        items: _toEntries(data.countries),
+        chartBuilder: (items) => KeywordBarChart(
+          title: '',
+          showFooter: false,
+          items: items,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHIndexCard(BuildContext context) {
+    return MockupCard(
+      child: ExpandableRankedChart(
+        title: 'H-Index Leaders',
+        subtitle: data.topics.isNotEmpty
+            ? 'Career h-index · authors in matched topics'
+            : 'Career h-index from OpenAlex summary_stats',
+        items: _toEntries(data.authorsByHIndex),
+        chartBuilder: (items) => KeywordBarChart(
+          title: '',
+          showFooter: false,
+          items: items,
+          valueLabel: 'h-index',
+          onItemTap: provider == null
+              ? null
+              : (name) => _openAuthorByName(
+                    context,
+                    name,
+                    data.authorsByHIndex,
+                  ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScatterCard(BuildContext context) {
+    return _chartCard(
+      title: 'Productivity vs Impact',
+      subtitle: 'Works count vs total citations · tap a point',
+      child: ProductivityScatterChart(
+        profiles: data.authorImpactProfiles,
+        onPointTap: provider == null
+            ? null
+            : (profile) => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AuthorDetailScreen(
+                      author: OpenAlexRankedEntity(
+                        id: profile.id,
+                        name: profile.name,
+                        count: profile.worksCount,
+                      ),
+                      provider: provider!,
+                    ),
+                  ),
+                ),
+      ),
+    );
+  }
+
+  Widget _buildDomainsCard(BuildContext context) {
+    return MockupCard(
+      child: ExpandableRankedChart(
+        title: 'Research Domains',
+        subtitle: 'Distribution among top fields',
+        items: _toEntries(data.topics),
+        chartBuilder: (items) => DomainDonutChart(
+          domains: _domainsForEntries(items),
+          onDomainTap: provider == null
+              ? null
+              : (domain) => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          DomainDetailScreen(domain: domain),
+                    ),
+                  ),
+        ),
+      ),
     );
   }
 

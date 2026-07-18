@@ -190,14 +190,14 @@ class _AboutScreenState extends State<AboutScreen> {
                 ),
                 const SizedBox(height: 20),
                 // [Merge resolved] Chọn feature/lab3: hardcoded values, Lab 3, coverage 2015+
-                _AboutRow(label: 'Data Source', value: 'OpenAlex API'),
+                const _AboutRow(label: 'Data Source', value: 'OpenAlex API'),
                 _AboutRow(
                   label: 'Coverage',
                   value: '2015–${DateTime.now().year}',
                 ),
-                _AboutRow(label: 'Total Records', value: '134M+ publications'),
-                _AboutRow(label: 'Version', value: '1.0.0'),
-                _AboutRow(label: 'Course', value: 'PRM393 Lab 3'),
+                const _AboutRow(label: 'Total Records', value: '134M+ publications'),
+                const _AboutRow(label: 'Version', value: '1.0.0'),
+                const _AboutRow(label: 'Course', value: 'PRM393 Lab 3'),
               ],
             ),
           ),

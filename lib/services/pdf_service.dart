@@ -162,7 +162,7 @@ class PdfService {
                 pw.SizedBox(height: 5),
 
                 pw.Text(
-                  'Total Papers: ${totalPublications}',
+                  'Total Papers: $totalPublications',
                 ),
 
                 pw.Text(

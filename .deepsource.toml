@@ -7,7 +7,19 @@ enabled = true
   [analyzers.meta]
   environment = ["flutter", "dart"]
   max_line_length = 120
+  imports_threshold = 8
 
 [[transformers]]
 name = "dartfmt"
 enabled = true
+
+[exclude_patterns]
+  = "build/**"
+  = "**/*.g.dart"
+  = "**/*.freezed.dart"
+  = "android/**"
+  = "ios/**"
+  = "web/**"
+  = "linux/**"
+  = "macos/**"
+  = "windows/**"

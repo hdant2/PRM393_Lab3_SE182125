@@ -153,37 +153,24 @@ class _TrendChartState extends State<TrendChart> {
       return null;
     }
 
-    final spots = <FlSpot>[];
-    for (var i = 0; i < years.length; i++) {
-      spots.add(FlSpot(i.toDouble(), data[years[i]]!.toDouble()));
-    }
-
-    // [Merge resolved] Chọn feature/lab3: yPadding=0.12, chartMinY=0.0
+    final spots = _buildSpots(years, data);
     final maxY = data.values.reduce((a, b) => a > b ? a : b).toDouble();
     final minY = data.values.reduce((a, b) => a < b ? a : b).toDouble();
     final yPadding = (maxY - minY) * 0.12;
     final chartMaxY = maxY + (yPadding > 0 ? yPadding : maxY * 0.1);
     const chartMinY = 0.0;
 
-    final overlayValues = <int>[];
-    final overlaySpots = <FlSpot>[];
-    if (overlay != null && overlay.isNotEmpty) {
-      for (var i = 0; i < years.length; i++) {
-        overlayValues.add(overlay[years[i]] ?? 0);
-      }
-      final overlayMax = overlayValues
-          .fold<int>(0, (max, value) => value > max ? value : max)
-          .toDouble();
-      if (overlayMax > 0) {
-        for (var i = 0; i < years.length; i++) {
-          overlaySpots.add(
-            FlSpot(
-              i.toDouble(),
-              overlayValues[i] / overlayMax * chartMaxY,
-            ),
-          );
-        }
-      }
+    final (overlaySpots, overlayValues) = _buildOverlaySpots(
+      years: years,
+      overlay: overlay,
+      chartMaxY: chartMaxY,
+    );
+
+    int labelInterval;
+    if (widget.isMonthly) {
+      labelInterval = years.length > 8 ? 2 : 1;
+    } else {
+      labelInterval = 1;
     }
 
     return _TrendChartScale(
@@ -194,10 +181,44 @@ class _TrendChartState extends State<TrendChart> {
       chartMinY: chartMinY,
       chartMaxY: chartMaxY,
       yInterval: _niceInterval(chartMaxY - chartMinY),
-      // [Merge resolved] Chọn feature/lab3: labelInterval đơn giản hơn
-      labelInterval: widget.isMonthly ? (years.length > 8 ? 2 : 1) : 1,
+      labelInterval: labelInterval,
       isMonthly: widget.isMonthly,
     );
+  }
+
+  List<FlSpot> _buildSpots(List<int> years, Map<int, int> data) {
+    return [
+      for (var i = 0; i < years.length; i++)
+        FlSpot(i.toDouble(), data[years[i]]!.toDouble()),
+    ];
+  }
+
+  (List<FlSpot>, List<int>) _buildOverlaySpots({
+    required List<int> years,
+    required Map<int, int>? overlay,
+    required double chartMaxY,
+  }) {
+    if (overlay == null || overlay.isEmpty) {
+      return (const [], <int>[]);
+    }
+
+    final overlayValues = <int>[];
+    for (var i = 0; i < years.length; i++) {
+      overlayValues.add(overlay[years[i]] ?? 0);
+    }
+
+    final overlayMax = overlayValues
+        .fold<int>(0, (max, value) => value > max ? value : max)
+        .toDouble();
+    if (overlayMax <= 0) {
+      return (const [], overlayValues);
+    }
+
+    final overlaySpots = [
+      for (var i = 0; i < years.length; i++)
+        FlSpot(i.toDouble(), overlayValues[i] / overlayMax * chartMaxY),
+    ];
+    return (overlaySpots, overlayValues);
   }
 
   LineChartData _buildChartData(_TrendChartScale scale) {

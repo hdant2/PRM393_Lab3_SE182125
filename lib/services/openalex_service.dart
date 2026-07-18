@@ -55,6 +55,8 @@ class OpenAlexService {
 
   static const Set<int> _retryStatusCodes = {429, 502, 503, 504};
   static const String _sortByCitationsDesc = 'cited_by_count:desc';
+  static const String _apiHost = 'api.openalex.org';
+  static const String _mailto = 'prm393.lab2@example.com';
 
   /// OpenAlex cho tối đa 100 bài/request; app hiển thị 20/trang cho UX
   static const int _perPage = 100;
@@ -1295,7 +1297,7 @@ class OpenAlexService {
       globalInfluential: globalInfluential,
       filterOverride: filterOverride,
     );
-    final url = Uri.https('api.openalex.org', '/works', queryParams);
+    final url = Uri.https(_apiHost, '/works', queryParams);
     return _getJson(url);
   }
 
@@ -1307,7 +1309,7 @@ class OpenAlexService {
   }) {
     final queryParams = <String, String>{
       'group_by': groupBy,
-      'mailto': 'prm393.lab2@example.com',
+      'mailto': _mailto,
     };
 
     final filter = filterOverride ??
@@ -1462,7 +1464,7 @@ class OpenAlexService {
       ..['per-page'] = '${limit.clamp(1, _perPage)}'
       ..['page'] = '1';
 
-    final url = Uri.https('api.openalex.org', '/$entityPath', queryParams);
+    final url = Uri.https(_apiHost, '/$entityPath', queryParams);
     final data = await _getJson(url);
     return parseEntityImpactProfiles(data);
   }
@@ -1476,7 +1478,7 @@ class OpenAlexService {
     final params = <String, String>{
       'sort': sort,
       'select': 'id,display_name,works_count,cited_by_count,summary_stats',
-      'mailto': 'prm393.lab2@example.com',
+      'mailto': _mailto,
     };
 
     final topicFilter = _topicIdsFilter(topicIds);
@@ -1581,14 +1583,14 @@ class OpenAlexService {
       'per-page': '$perPage',
       'page': '$page',
       'select': baseParams['select'] ?? _selectFields,
-      'mailto': 'prm393.lab2@example.com',
+      'mailto': _mailto,
     };
 
     if (_apiKey.isNotEmpty) {
       queryParams['api_key'] = _apiKey;
     }
 
-    final url = Uri.https('api.openalex.org', '/works', queryParams);
+    final url = Uri.https(_apiHost, '/works', queryParams);
     final data = await _getJson(url);
 
     final List results = data['results'] ?? [];

@@ -50,7 +50,7 @@ class ChartAxisLayout {
     }
 
     // Luôn hiện đủ năm: 2026 (không rút '26).
-    final short = false;
+    const short = false;
     final rotate = pointCount > 10 && !isMonthly;
     return ChartAxisLayout(
       leftAxisSize: leftAxis,
